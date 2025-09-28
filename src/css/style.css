@@ -459,7 +459,9 @@ body {
 
 .carinfo p span {
     font-size: large;
-    color: rgb(51, 167, 28);
+    color: rgb(255, 0, 0);
+    background-color: #000000e5;
+    padding: 10px;
 }
 
 .carinfo button {
