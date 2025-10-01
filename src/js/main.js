@@ -1,7 +1,7 @@
 import "../css/style.css";
 import { load } from "./animate"
-import { stopMusic, firstSound, gameMusic,stopSound } from "./sounds";
-import { garageSelect, changeSelection,selectGarage } from "./garage"
+import { stopMusic, firstSound, gameMusic, stopSound } from "./sounds";
+import { garageSelect, changeSelection, selectGarage } from "./garage"
 
 
 let muted = false;
@@ -49,6 +49,14 @@ login.addEventListener('click', () => {
 
 });
 
+// function intializeGarage() {
+//     garagepg.style.display = 'block';
+//     setTimeout(() => {
+//         garagepg.style.display = 'none';
+//     }, 10);
+// }
+// intializeGarage()
+
 garagebtn.addEventListener('click', () => {
     screen.forEach(s => s.style.display = 'none')
     garagepg.style.display = 'block';
@@ -74,7 +82,7 @@ backbtn.forEach((b) => {
 // simple
 
 garagesw.addEventListener('click', selectGarage)
-mutebtn.addEventListener('click',stopSound);
+mutebtn.addEventListener('click', stopSound);
 changeCar.addEventListener('click', changeSelection);
 
 

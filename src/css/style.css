@@ -404,14 +404,10 @@ body {
 
 .car {
     min-width: 400px;
-    ;
     width: 98%;
     height: 700px;
-    /* background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
     overflow: hidden;
-    margin-bottom: -20px; */
+    
 }
 
 .image-fallback {
@@ -671,6 +667,6 @@ body {
     display: none;
 }
 
-.loaderpg {
+.garagepg {
     display: block;
 }

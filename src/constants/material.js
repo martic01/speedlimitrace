@@ -61,7 +61,7 @@ import car3d4 from  "../../assets/models/ferrari.glb"
 import car3d5 from "../../assets/models/car3d11.glb"
 import car3d6 from "../../assets/models/car3d6.glb"
 import car3d7 from "../../assets/models/car3d7.glb"
-import car3d8 from "../../assets/models/car3d10.glb"
+import car3d8 from "../../assets/models/lasttry2.glb"
 import chopper3d from "../../assets/models/3Dhover_craft.glb"
 import missile3d from "../../assets/models/3Dmissile.glb"
 

@@ -475,31 +475,27 @@ function init3DScene(container) {
         container.innerHTML = '';
         container.appendChild(renderer.domElement);
 
+        // 🔧 Force initial size and projection update
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+
         // --- Better lighting setup ---
         renderer.physicallyCorrectLights = true;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.outputEncoding = THREE.sRGBEncoding;
 
-        // Ambient light (soft overall fill)
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
         scene.add(ambientLight);
 
-        // Sunlight directional
         const sunLight = new THREE.DirectionalLight(0xffffff, 2);
         sunLight.position.set(5, 10, 7);
         sunLight.castShadow = true;
         scene.add(sunLight);
 
-        // Hemisphere light for sky/ground contrast
         const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
         hemiLight.position.set(0, 20, 0);
         scene.add(hemiLight);
-
-        // // --- Helpers (optional, for debugging) ---
-        // const gridHelper = new THREE.GridHelper(10, 10, 0x444444, 0x222222);
-        // gridHelper.position.y = -0.5;
-        // scene.add(gridHelper);
-        // console.log('📐 Grid helper added');
 
         // Controls
         controls = new OrbitControls(camera, renderer.domElement);
@@ -514,11 +510,15 @@ function init3DScene(container) {
         }
         animate();
 
+        // 🚑 Force first render (fix "invisible until resize")
+        renderer.render(scene, camera);
+
         // Handle resize
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.render(scene, camera); // render again on resize
         });
 
         using3D = true;
@@ -616,7 +616,6 @@ function loadCarModel(carData) {
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     hideLoadingAnimation();
-                    animateCarIn();
                     updateCarInfo(carData)
                 }, 500); // Small delay to ensure smooth transition
             });
@@ -718,6 +717,8 @@ function updateLoadingProgress(percent) {
 }
 
 function hideLoadingAnimation() {
+     stopMusic(switchsound)
+    clearTimeout(soundtime)
     const loadingElement = document.getElementById('model-loading');
     if (loadingElement) {
         // Add fade out animation
@@ -726,7 +727,9 @@ function hideLoadingAnimation() {
 
         setTimeout(() => {
             loadingElement.remove();
+            animateCarIn();
         }, 300);
+        
     }
 
     // Also remove any existing progress elements
@@ -736,15 +739,13 @@ function hideLoadingAnimation() {
     if (percentageText) percentageText.remove();
 }
 
-// --- Enhanced Error Handling with Loading ---
 
-// --- DOM Ready ---
 document.addEventListener("DOMContentLoaded", () => {
     console.log('🏠 DOM loaded, initializing 3D viewer...');
 
     if (carContainer.clientWidth === 0 || carContainer.clientHeight === 0) {
         carContainer.style.width = '100%';
-        carContainer.style.height = '500px';
+        carContainer.style.height = '700px';
         console.log('📐 Set container dimensions');
     }
 
@@ -782,7 +783,6 @@ function animateCarIn() {
 
     carInfo.style.animation = 'slideIn2 1s linear forwards';
     carContainer.style.animation = 'slideIn 1s linear forwards';
-
 
     changeCar.style.pointerEvents = 'none';
     soundtime = setTimeout(() => {
@@ -827,6 +827,8 @@ function changeSelection() {
 }
 
 function selectGarage() {
+     stopMusic(switchsound)
+    clearTimeout(soundtime)
     garageBackgrounds.forEach(g => g.selected = !g.selected);
     const bg = garageBackgrounds.find(g => g.selected);
     if (bg) garage.style.backgroundImage = `url(${bg.image})`;
