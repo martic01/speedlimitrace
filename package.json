@@ -27,8 +27,10 @@
     "webpack-dev-server": "4.7.4"
   },
   "dependencies": {
+    "@google/model-viewer": "^4.1.0",
     "bootstrap": "^5.3.3",
     "jquery": "^3.7.1",
-    "popper.js": "^1.16.1"
+    "popper.js": "^1.16.1",
+    "three": "^0.126.1"
   }
 }

@@ -1,8 +1,4 @@
-import whiteCar1 from "../../assets/images/game-car.png"
-import whiteCar2 from "../../assets/images/game-car2.png"
-import whiteCarFV from "../../assets/images/game-carFV.png"
-import blackCar from "../../assets/images/game-carB3.png"
-import blackCarFV from "../../assets/images/game-carBFV.png"
+
 import chopper from "../../assets/images/chopper.png"
 import weatherDay from "../../assets/images/weather-day.webp"
 import weatherNight from "../../assets/images/weather-night.webp"
@@ -43,29 +39,49 @@ import redTopView from "../../assets/images/model3D/topviewr.png"
 
 // sounds
 
-import accelerate1Sound from "../../assets/sounds/start1.mp3"
-import accelerate2Sound from "../../assets/sounds/start2.mp3"
-import drivingSound from "../../assets/sounds/driving.mp3"
-import speedupSound from "../../assets/sounds/speedup.mp3"
-import brakeSound from "../../assets/sounds/brake.mp3"
-import honkSound from "../../assets/sounds/honk.mp3"
-import explodeSound from "../../assets/sounds/explode.mp3"
-import crashSound from "../../assets/sounds/crash.mp3"
-import lunchSound from "../../assets/sounds/lunch.mp3"
-import otherSound from "../../assets/sounds/wtrack.mp3"
-import gameSound1 from "../../assets/sounds/gamesound1.mp3"
-import gameSound2 from "../../assets/sounds/gamesound2.mp3"
+import accelerate1Sound from "../../assets/audio/start1.mp3"
+import accelerate2Sound from "../../assets/audio/start2.mp3"
+import drivingSound from "../../assets/audio/driving.mp3"
+import speedupSound from "../../assets/audio/speedup.mp3"
+import brakeSound from "../../assets/audio/brake.mp3"
+import honkSound from "../../assets/audio/honk.mp3"
+import explodeSound from "../../assets/audio/explode.mp3"
+import crashSound from "../../assets/audio/crash.mp3"
+import lunchSound from "../../assets/audio/lunch.mp3"
+import otherSound from "../../assets/audio/wtrack.mp3"
+import gameSound2 from "../../assets/audio/gamesound1.mp3"
+import gameSound1 from "../../assets/audio/gamesound2.mp3"
 
 
+// 3D Files
+import car3d1 from "../../assets/models/dodge.glb"
+import car3d2 from "../../assets/models/dodge2.glb"
+import car3d3 from "../../assets/models/car3d8.glb"
+import car3d4 from  "../../assets/models/ferrari.glb" 
+import car3d5 from "../../assets/models/car3d11.glb"
+import car3d6 from "../../assets/models/car3d6.glb"
+import car3d7 from "../../assets/models/car3d7.glb"
+import car3d8 from "../../assets/models/car3d10.glb"
+import chopper3d from "../../assets/models/3Dhover_craft.glb"
+import missile3d from "../../assets/models/3Dmissile.glb"
 
+
+const vechicles3D = {
+    car3d1,
+    car3d2,
+    car3d3,
+    car3d4,
+    car3d5,
+    car3d6,
+    car3d7,
+    car3d8,
+    chopper3d,
+    missile3d
+}
 
 const vechicles = {
-    whiteCar1,
-    whiteCar2,
-    whiteCarFV,
-    blackCar,
-    blackCarFV,
-    chopper
+    chopper,
+    redFrontView
 }
 const weathers = {
     weatherDay,
@@ -130,4 +146,4 @@ const sounds = {
 }
 
 
-export { vechicles, weathers, obstacles, tracks, model3D, sounds, garages }
+export { vechicles,vechicles3D, weathers, obstacles, tracks, model3D, sounds, garages }

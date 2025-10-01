@@ -48,8 +48,25 @@ module.exports = {
         ]
       },
       {
-        test: /\.(png|svg|jpg|jpeg|webp|gif|mp3|wav|ogg)$/i,
+        test: /\.(glb|gltf)$/i,
         type: "asset/resource",
+        generator: {
+          filename: "models/[name][ext]"
+        }
+      },
+      {
+        test: /\.(png|svg|jpg|jpeg|webp|gif)$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "images/[name][ext]"
+        }
+      },
+      {
+        test: /\.(mp3|m4a|wav|ogg)$/i,
+        type: "asset/resource",
+        generator: {
+          filename: "audio/[name][ext]"
+        }
       },
       {
         test: /\.html$/i,
