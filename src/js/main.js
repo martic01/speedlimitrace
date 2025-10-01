@@ -49,13 +49,13 @@ login.addEventListener('click', () => {
 
 });
 
-// function intializeGarage() {
-//     garagepg.style.display = 'block';
-//     setTimeout(() => {
-//         garagepg.style.display = 'none';
-//     }, 10);
-// }
-// intializeGarage()
+function intializeGarage() {
+    garagepg.style.display = 'block';
+    setTimeout(() => {
+        garagepg.style.display = 'none';
+    }, 10);
+}
+intializeGarage()
 
 garagebtn.addEventListener('click', () => {
     screen.forEach(s => s.style.display = 'none')
