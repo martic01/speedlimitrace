@@ -62,6 +62,7 @@ const VIEW_PRESETS = {
     }
 };
 
+let float =  Math.PI / 2.1
 // --- Car & Garage Data ---
 const garageVechicles = [
     {
@@ -91,7 +92,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle:  float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -124,7 +125,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -132,7 +133,7 @@ const garageVechicles = [
     },
     {
         id: '3cg',
-        name: 'Fist',
+        name: 'Fist GT',
         Car3D: vechicles3D.car3d3,
         CarImage: vechicles.redFrontView,
         speed: '140km/h',
@@ -157,7 +158,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -190,7 +191,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -223,7 +224,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -236,7 +237,7 @@ const garageVechicles = [
         CarImage: vechicles.redFrontView,
         speed: '340km/h',
         acceleration: '24m/s²',
-        handling: 'LENGEND🔥',
+        handling: 'LENGEND 🔥',
         selected: false,
 
         // New configuration options
@@ -256,7 +257,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -289,7 +290,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -297,7 +298,7 @@ const garageVechicles = [
     },
     {
         id: '8fg',
-        name: 'Storm-rider⚡',
+        name: 'Storm-rider ⚡',
         Car3D: vechicles3D.car3d8,
         CarImage: vechicles.redFrontView,
         speed: '400km/h',
@@ -322,7 +323,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: Math.PI / 2.4,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -617,17 +618,24 @@ function loadCarModel(carData) {
                 setTimeout(() => {
                     hideLoadingAnimation();
                     updateCarInfo(carData)
+                     animateCarIn();
                 }, 500); // Small delay to ensure smooth transition
             });
 
         },
         // Progress callback
         (xhr) => {
+            let percentLoaded = 0;
+
             if (xhr.lengthComputable) {
-                const percentLoaded = (xhr.loaded / xhr.total * 100);
-                console.log(`📦 Loading: ${percentLoaded.toFixed(1)}%`);
-                updateLoadingProgress(percentLoaded);
+                percentLoaded = (xhr.loaded / xhr.total * 100);
+            } else {
+                // fallback (loaded grows, but total is unknown)
+                percentLoaded = Math.min((xhr.loaded / 1000000) * 100, 99);
             }
+
+            console.log(`📦 Loading: ${percentLoaded.toFixed(1)}%`);
+            updateLoadingProgress(percentLoaded);
         },
         (err) => {
             console.error("❌ Model load failed:", err);
@@ -697,27 +705,28 @@ function showLoadingAnimation(carName = '') {
     }
 }
 
+
 function updateLoadingProgress(percent) {
     const progressBar = document.getElementById('loading-progress-bar');
     const percentageText = document.getElementById('loading-percentage');
 
-    if (progressBar) {
-        progressBar.style.width = percent + '%';
+    if (!progressBar || !percentageText) {
+        console.warn('⚠️ Progress elements not found in DOM yet');
+        return;
     }
-    if (percentageText) {
-        percentageText.textContent = Math.round(percent) + '%';
 
-        // Add pulse animation when near completion
-        if (percent >= 90) {
-            percentageText.classList.add('loading-pulse');
-        } else {
-            percentageText.classList.remove('loading-pulse');
-        }
+    progressBar.style.width = percent + '%';
+    percentageText.textContent = Math.round(percent) + '%';
+
+    if (percent >= 90) {
+        percentageText.classList.add('loading-pulse');
+    } else {
+        percentageText.classList.remove('loading-pulse');
     }
 }
 
 function hideLoadingAnimation() {
-     stopMusic(switchsound)
+    stopMusic(switchsound)
     clearTimeout(soundtime)
     const loadingElement = document.getElementById('model-loading');
     if (loadingElement) {
@@ -727,9 +736,8 @@ function hideLoadingAnimation() {
 
         setTimeout(() => {
             loadingElement.remove();
-            animateCarIn();
+           
         }, 300);
-        
     }
 
     // Also remove any existing progress elements
@@ -827,7 +835,7 @@ function changeSelection() {
 }
 
 function selectGarage() {
-     stopMusic(switchsound)
+    stopMusic(switchsound)
     clearTimeout(soundtime)
     garageBackgrounds.forEach(g => g.selected = !g.selected);
     const bg = garageBackgrounds.find(g => g.selected);
