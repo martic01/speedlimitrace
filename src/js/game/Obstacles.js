@@ -38,7 +38,7 @@ export class Obstacles {
         let mesh, outlineMesh;
         
         if (type === this.OBSTACLE_TYPES.DROP_ROCK) {
-            const geo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+            const geo = new THREE.BoxGeometry(0.7, 0.7, 0.7);
             const mat = new THREE.MeshStandardMaterial({ 
                 map: new THREE.TextureLoader().load(texture),
                 transparent: true,
@@ -46,7 +46,7 @@ export class Obstacles {
             });
             mesh = new THREE.Mesh(geo, mat);
             
-            const outlineGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            const outlineGeo = new THREE.BoxGeometry(1, 1, 1);
             const outlineMat = new THREE.MeshBasicMaterial({
                 color: 0xffff00,
                 transparent: true,
@@ -61,7 +61,7 @@ export class Obstacles {
             mesh.userData.outline = outlineMesh;
             
         } else {
-            const geo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
+            const geo = new THREE.BoxGeometry(0.6, 0.6, 0.6);
             const mat = new THREE.MeshStandardMaterial({ 
                 map: new THREE.TextureLoader().load(texture),
                 transparent: true,
@@ -69,12 +69,12 @@ export class Obstacles {
             });
             mesh = new THREE.Mesh(geo, mat);
             
-            const outlineGeo = new THREE.BoxGeometry(1.2, 1.2, 1.2);
+            const outlineGeo = new THREE.BoxGeometry(0.9, 0.9, 0.9);
             const outlineColor = type === this.OBSTACLE_TYPES.BOMB ? 0xff0000 : 0x00ff00;
             const outlineMat = new THREE.MeshBasicMaterial({
                 color: outlineColor,
                 transparent: true,
-                opacity: 0.4,
+                opacity: 0.8,
                 side: THREE.BackSide
             });
             outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
@@ -142,7 +142,7 @@ export class Obstacles {
         }
     }
 
-    checkCollisions(car, tumbleSystem) {
+   checkCollisions(car, tumbleSystem) {
         if (!this.activeObstacle) return;
 
         const carBox = new THREE.Box3().setFromObject(car.mesh);
@@ -151,6 +151,15 @@ export class Obstacles {
         if (carBox.intersectsBox(obsBox)) {
             console.log(`💥 Collision with ${this.activeObstacle.userData.type}!`);
             
+            // CHECK PROTECTION FIRST
+            if (car.isProtected && car.isProtected()) {
+                console.log("🛡️ Collision blocked by protection!");
+                car.handleCollision(this.activeObstacle.userData.type);
+                this.removeObstacle();
+                return;
+            }
+            
+            // Normal collision handling if not protected
             if (this.activeObstacle.userData.type === this.OBSTACLE_TYPES.ROCK || 
                 this.activeObstacle.userData.type === this.OBSTACLE_TYPES.DROP_ROCK) {
                 this.handleRockCollision();
@@ -177,11 +186,6 @@ export class Obstacles {
         
         // Dramatic speed reduction
         this.game.speed = Math.max(0, this.game.speed * 0.2);
-        
-        // Visual feedback - car flash
-        if (this.car && this.car.mesh) {
-            this.car.mesh.material.color.set(0xff6666);
-        }
         
         // Camera shake effect
         this.shakeCamera(600);

@@ -6,7 +6,7 @@ export class Road {
         this.scene = scene;
         this.roads = [];
         this.roadLength = 14;
-        this.roadWidth = 6;
+        this.roadWidth = 6.4;
         
         this.createRoads();
     }

@@ -9,7 +9,7 @@ export class TumbleSystem {
         this.isTumbling = false;
         this.isReturningToNormal = false;
         this.tumbleSpeed = 0.15;
-        this.tumbleThreshold = 0.1;
+        this.tumbleThreshold = 0.3;
         this.tumbleDuration = 3000;
         this.tumbleStartTime = 0;
         
@@ -17,7 +17,7 @@ export class TumbleSystem {
         this.explosion = null;
     }
 
-    setTumbleSettings({ speed = 0.15, threshold = 0.1, duration = 3000 } = {}) {
+    setTumbleSettings({ speed = 0.15, threshold = 0.3, duration = 3000 } = {}) {
         this.tumbleSpeed = speed;
         this.tumbleThreshold = threshold;
         this.tumbleDuration = duration;
@@ -57,9 +57,10 @@ export class TumbleSystem {
 
 
     startTumble() {
+        this.car.startAnyAnimation('falling')
         this.isTumbling = true;
         this.tumbleStartTime = Date.now();
-        
+         
         // Change car color to black for tumble effect
         this.setCarColor(0x000000);
         console.log("🚨 TUMBLE TRIGGERED! Car turned black");
@@ -77,6 +78,7 @@ export class TumbleSystem {
             map: texture, 
             transparent: true,
             opacity: 1.0
+            
         });
         this.explosion = new THREE.Sprite(mat);
         this.explosion.scale.set(5, 5, 1);
@@ -85,6 +87,7 @@ export class TumbleSystem {
         scene.add(this.explosion);
 
         // Start tumble
+       
         this.startTumble();
     }
 
@@ -93,6 +96,7 @@ export class TumbleSystem {
             this.updateTumble();
         } else if (this.isReturningToNormal) {
             this.updateReturnToNormal();
+            this.car.startAnyAnimation('idle')
         }
     }
 

@@ -9,21 +9,25 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 // Your modules
 import { garages, vechicles3D, vechicles } from "../constants/material.js";
 import { stopMusic, startAcc } from "./sounds.js";
-import cars from '../../assets/models/dodge.glb'
+
 
 // --- UI References ---
 const changeCar = document.querySelector('.change');
+const garagesw = document.querySelector('.garagesw')
 const carContainer = document.querySelector('.car');
 const carInfo = document.querySelector('.carinfo');
 const carName = document.querySelector('.name');
 const speed = document.querySelector('.sp');
 const acceleration = document.querySelector('.ac');
 const handling = document.querySelector('.hn');
+const protect = document.querySelector('.pd');
 const selecttxt = document.querySelector('.selecttxt');
 const garage = document.querySelector('.garage');
 const Selectbtn = document.querySelector('.selectbtn');
 
 // View presets configuration
+let selectedCar = null;
+
 const VIEW_PRESETS = {
     front: {
         cameraPosition: { x: 0, y: -0.8, z: 5 },
@@ -62,7 +66,7 @@ const VIEW_PRESETS = {
     }
 };
 
-let float =  Math.PI / 2.1
+let float = Math.PI / 2.1
 // --- Car & Garage Data ---
 const garageVechicles = [
     {
@@ -70,8 +74,8 @@ const garageVechicles = [
         name: 'Fast time',
         Car3D: vechicles3D.car3d1,
         CarImage: vechicles.redFrontView,
-        speed: '100km/h',
-        acceleration: '10m/s²',
+        speed: '130km/h',
+        acceleration: '0.6m/s²',
         handling: 'Medium',
         selected: true,
 
@@ -83,6 +87,23 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+        // Car properties that come from the car itself
+        maxSpeed: 0.13,
+        accel: 0.0006,
+        decel: 0.0001,
+        brakeDecel: 0.0002,
+        laneChangeSpeed: 0.1,
+
+        // Protective system properties
+        protectionDistance: 300, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -92,7 +113,7 @@ const garageVechicles = [
         },
         // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle:  float,      // 90° - fixed vertical angle
+            minPolarAngle: float,      // 90° - fixed vertical angle
             maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
             minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
             maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
@@ -103,8 +124,8 @@ const garageVechicles = [
         name: 'Red Horse',
         Car3D: vechicles3D.car3d2,
         CarImage: vechicles.redFrontView,
-        speed: '120km/h',
-        acceleration: '12m/s²',
+        speed: '200km/h',
+        acceleration: '1m/s²',
         handling: 'Medium',
         selected: false,
 
@@ -116,6 +137,24 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+        // Car properties that come from the car itself
+        maxSpeed: 0.2,
+        accel: 0.001,
+        decel: 0.001,
+        brakeDecel: 0.002,
+        laneChangeSpeed: 0.2,
+
+        // Protective system properties
+        protectionDistance: 400, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
+
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -136,8 +175,8 @@ const garageVechicles = [
         name: 'Fist GT',
         Car3D: vechicles3D.car3d3,
         CarImage: vechicles.redFrontView,
-        speed: '140km/h',
-        acceleration: '14m/s²',
+        speed: '200km/h',
+        acceleration: '2m/s²',
         handling: 'Good',
         selected: false,
 
@@ -149,6 +188,24 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+
+        maxSpeed: 0.2,
+        accel: 0.002,
+        decel: 0.001,
+        brakeDecel: 0.002,
+        laneChangeSpeed: 0.2,
+
+        // Protective system properties
+        protectionDistance: 500, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
+
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -169,8 +226,8 @@ const garageVechicles = [
         name: 'New Dawn',
         Car3D: vechicles3D.car3d4,
         CarImage: vechicles.redFrontView,
-        speed: '200km/h',
-        acceleration: '18m/s²',
+        speed: '300km/h',
+        acceleration: '7m/s²',
         handling: 'Good',
         selected: false,
 
@@ -182,6 +239,24 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+
+        maxSpeed: 0.3,
+        accel: 0.007,
+        decel: 0.01,
+        brakeDecel: 0.02,
+        laneChangeSpeed: 0.2,
+
+        // Protective system properties
+        protectionDistance: 500, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
+
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -202,10 +277,28 @@ const garageVechicles = [
         name: 'Wizard',
         Car3D: vechicles3D.car3d5,
         CarImage: vechicles.redFrontView,
-        speed: '270km/h',
-        acceleration: '20m/s²',
+        speed: '340km/h',
+        acceleration: '7.4m/s²',
         handling: 'Pro',
         selected: false,
+
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+
+        maxSpeed: 0.34,
+        accel: 0.0074,
+        decel: 0.01,
+        brakeDecel: 0.03,
+        laneChangeSpeed: 0.3,
+
+        // Protective system properties
+        protectionDistance: 500, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
 
         // New configuration options
         modelPosition: { x: 0, y: -0.5, z: 0 }, // Raised position
@@ -235,8 +328,8 @@ const garageVechicles = [
         name: '🔥 At Last 🔥',
         Car3D: vechicles3D.car3d6,
         CarImage: vechicles.redFrontView,
-        speed: '340km/h',
-        acceleration: '24m/s²',
+        speed: '400km/h',
+        acceleration: '8m/s²',
         handling: 'LENGEND 🔥',
         selected: false,
 
@@ -248,6 +341,25 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+
+        maxSpeed: 0.4,
+        accel: 0.008,
+        decel: 0.01,
+        brakeDecel: 0.03,
+        laneChangeSpeed: 0.3,
+
+        // Protective system properties
+        protectionDistance: 700, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
+
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -268,8 +380,8 @@ const garageVechicles = [
         name: 'Fear 🤬',
         Car3D: vechicles3D.car3d7,
         CarImage: vechicles.redFrontView,
-        speed: '370km/h',
-        acceleration: '30m/s²',
+        speed: '500km/h',
+        acceleration: '10m/s²',
         handling: 'STAR 🌟',
         selected: false,
 
@@ -281,6 +393,24 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+
+        maxSpeed: 0.5,
+        accel: 0.01,
+        decel: 0.02,
+        brakeDecel: 0.03,
+        laneChangeSpeed: 0.4,
+
+        // Protective system properties
+        protectionDistance: 1200, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
+
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -301,8 +431,8 @@ const garageVechicles = [
         name: 'Storm-rider ⚡',
         Car3D: vechicles3D.car3d8,
         CarImage: vechicles.redFrontView,
-        speed: '400km/h',
-        acceleration: '34m/s²',
+        speed: '600km/h',
+        acceleration: '20m/s²',
         handling: 'Pro-Star🌟',
         selected: false,
 
@@ -314,6 +444,24 @@ const garageVechicles = [
             maxScale: 2,
             defaultScale: 2
         },
+
+        carPosition: { x: 0, y: 0.3, z: -6 },
+        carScaleConfig: { defaultScale: 3.7 },
+        driveInStartZ: 6,
+
+
+        maxSpeed: 0.6,
+        accel: 0.02,
+        decel: 0.02,
+        brakeDecel: 0.03,
+        laneChangeSpeed: 0.5,
+
+        // Protective system properties
+        protectionDistance: 3000, // meters of protection
+        hasProtection: false,
+        protectionRemaining: 3,
+        protectionActive: false,
+
         // Disable specific views (user can't rotate to these)
         disabledViews: {
             under: true,     // User CAN view from under
@@ -618,7 +766,7 @@ function loadCarModel(carData) {
                 setTimeout(() => {
                     hideLoadingAnimation();
                     updateCarInfo(carData)
-                     animateCarIn();
+                    animateCarIn();
                 }, 500); // Small delay to ensure smooth transition
             });
 
@@ -736,7 +884,7 @@ function hideLoadingAnimation() {
 
         setTimeout(() => {
             loadingElement.remove();
-           
+
         }, 300);
     }
 
@@ -747,6 +895,21 @@ function hideLoadingAnimation() {
     if (percentageText) percentageText.remove();
 }
 
+function garageInit() {
+    stopMusic(switchsound)
+    clearTimeout(soundtime)
+
+    const v = [...garageVechicles];
+
+    v.forEach(c => {
+        if (c.selected) {
+            Selectbtn.setAttribute('id', c.id);
+            loadCarModel(c);
+            selectedCar = c
+            Selectbtn.classList.add('selected');
+        } 
+    });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log('🏠 DOM loaded, initializing 3D viewer...');
@@ -801,26 +964,22 @@ function animateCarIn() {
 
 
 function updateCarInfo(infos) {
+    const picked = infos.selected
     carName.textContent = infos.name;
     speed.textContent = infos.speed;
     acceleration.textContent = infos.acceleration;
     handling.textContent = infos.handling;
-    selecttxt.textContent = infos.selected ? 'Selected' : 'Select';
+    protect.textContent = infos.protectionDistance + 'm';
+
+    selecttxt.textContent = picked ? 'Selected' : 'Select';
+    if (picked) {
+        Selectbtn.classList.add('selected');
+    } else {
+        Selectbtn.classList.remove('selected');
+    }
 }
 // --- Selection Logic ---
-function garageSelect() {
-    stopMusic(switchsound)
-    clearTimeout(soundtime)
 
-    const v = [...garageVechicles];
-
-    v.forEach(c => {
-        if (c.selected) {
-            loadCarModel(c);
-        }
-    });
-
-}
 
 let count = 0;
 function changeSelection() {
@@ -829,10 +988,11 @@ function changeSelection() {
 
     const v = garageVechicles;
     count = (count + 1) % v.length;
-
+    Selectbtn.setAttribute('id', v[count].id);
     loadCarModel(v[count]);
-
 }
+
+
 
 function selectGarage() {
     stopMusic(switchsound)
@@ -843,12 +1003,37 @@ function selectGarage() {
     animateCarIn();
 }
 
+function selectCar(id) {
+    const v = [...garageVechicles];
+
+    v.forEach((car) => {
+        if (car.id === id) {
+            car.selected = true;
+            selecttxt.textContent = 'Selected';
+            Selectbtn.classList.add('selected');
+            selectedCar = car
+        } else {
+            car.selected = false;
+            
+        }
+    });
+}
+
+// CORRECT: Pass a function reference, don't call it immediately
+Selectbtn.addEventListener('click', function () {
+    selectCar(Selectbtn.id);
+});
+
+
+changeCar.addEventListener('click', changeSelection);
+garagesw.addEventListener('click', selectGarage)
 // Export public API for controlling views
 export {
-    garageSelect,
+    garageInit,
     changeSelection,
     garageVechicles,
     selectGarage,
     setCameraView,  // Allow external control of camera views
-    VIEW_PRESETS    // Export view presets for external use
+    VIEW_PRESETS,
+    selectedCar    // Export view presets for external use
 };

@@ -39,7 +39,7 @@ export class Controls {
                 } else {
                     this.game.speed = 0;
                 }
-            }, 1000);
+            }, 700);
         }
     }
 
