@@ -12,9 +12,9 @@ export class Road {
     }
 
     createRoads() {
-        const roadTexture = new THREE.TextureLoader().load(tracks.road);
+        const roadTexture = new THREE.TextureLoader().load(tracks.road1);
         roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
-        roadTexture.repeat.set(1, 5);
+        roadTexture.repeat.set(1, 1);
 
         const roadMaterial = new THREE.MeshStandardMaterial({ map: roadTexture });
 

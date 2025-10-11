@@ -7,13 +7,15 @@ import { Obstacles } from './Obstacles.js';
 import { Curves } from './Curves.js';
 import { TumbleSystem } from './TumbleSystem.js';
 
+
 export class startGame {
     constructor(containerSelector = '.road', distanceKm = 1) {
         this.containerSelector = containerSelector;
         this.raceDistance = distanceKm * 1000;
-
+        this.controls = Controls
         this.car = null; // Initialize as null, will be set in init()
 
+        this.nowSound = null
         this.scene = null;
         this.camera = null;
         this.renderer = null;
@@ -148,7 +150,7 @@ export class startGame {
             if (countdownDisplay) {
                 countdownDisplay.textContent = 'DRIVE! 🤬 ';
                 countdownDisplay.style.color = '#ff0000';
-                countdownDisplay.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                countdownDisplay.style.transform = 'translate(-50%, -50%) scale(1)';
                 countdownDisplay.style.opacity = '1';
             }
 
@@ -274,7 +276,7 @@ export class startGame {
         });
 
         this.car.startAnyAnimation('idle');
-        
+
         // Apply any pending settings
         this.applyPendingSettings();
 
@@ -335,6 +337,8 @@ export class startGame {
             return;
         }
 
+        this.controls.update()
+
         // Handle explosion animation first
         if (this.isExploding) {
             this.obstacles.updateFlyingAnimation();
@@ -348,6 +352,7 @@ export class startGame {
             this.updateDistanceDisplay();
             return;
         }
+
 
         // Handle bounce back animation
         if (this.isBouncingBack) {
@@ -392,12 +397,12 @@ export class startGame {
 
         // ALWAYS UPDATE ROAD - EVEN AFTER FINISH LINE
         this.road.update(distanceThisFrame, this.totalDistance, this.curves);
-        
+
         // Only update obstacles if race not finished
         if (!this.raceFinished || this.speed > 0.01) {
             this.obstacles.update(distanceThisFrame, this.totalDistance, this.raceDistance);
         }
-        
+
         // Always update finish line position
         this.finishLine.update(distanceThisFrame);
 
@@ -446,7 +451,7 @@ export class startGame {
         this.car.mesh.rotation.z = Math.sin(bounceProgress * Math.PI * 4) * 0.3;
 
         // Move roads forward (creating illusion of car moving backward)
-        const roadMovement = this.speed * 5;
+        const roadMovement = this.speed * -4;
         this.road.update(roadMovement, this.totalDistance, this.curves);
         this.obstacles.update(roadMovement, this.totalDistance, this.raceDistance);
         this.finishLine.update(roadMovement);
@@ -488,16 +493,25 @@ export class startGame {
         const decel = this.car.getDeceleration ? this.car.getDeceleration() : this.decel;
 
         if (this.controls.upPressed && !this.raceFinished) {
-            this.speed = Math.min(maxSpeed, this.speed + accel);
+                this.speed = Math.min(maxSpeed, this.speed + 0.0004);
+            setTimeout(() => {
+                 this.speed = Math.min(maxSpeed, this.speed + accel);
+            },2000);
+        
+            console.log('the speed read',this.speed);
+            
         }
         if (this.controls.downPressed) {
-            this.speed = Math.max(0, this.speed - brakeDecel);
+            this.speed = Math.max(0, this.speed - decel);
+             console.log('the speed read',this.speed);
         }
         if (this.controls.braking) {
             this.speed = Math.max(0, this.speed - brakeDecel);
+             console.log('the speed read',this.speed);
         }
         if (!this.controls.upPressed && !this.controls.downPressed && !this.controls.braking && !this.raceFinished) {
-            this.speed = Math.max(0, this.speed - decel);
+            this.speed = Math.max(0, this.speed - 0.002);
+             console.log('the speed read',this.speed);
         }
     }
 

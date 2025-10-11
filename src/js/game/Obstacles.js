@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 import { obstacles } from '../../constants/material.js';
+import { crash,explode } from '../sounds.js';
+
 
 export class Obstacles {
     constructor(scene, car, game) {
@@ -9,7 +11,8 @@ export class Obstacles {
         this.obstacles = [];
         this.nextObstacleDistance = 100;
         this.activeObstacle = null;
-        
+        this.nowSound = null
+
         this.OBSTACLE_TYPES = {
             DROP_ROCK: 'dropRock',
             ROCK: 'rock',
@@ -183,6 +186,7 @@ export class Obstacles {
         this.game.bounceDuration = 800;
         this.game.bounceForce = bounceForce;
         this.game.originalSpeed = this.game.speed;
+        this.nowSound = crash()
         
         // Dramatic speed reduction
         this.game.speed = Math.max(0, this.game.speed * 0.2);
@@ -200,7 +204,7 @@ export class Obstacles {
         this.game.isExploding = true;
         this.game.explosionStartTime = Date.now();
         this.game.explosionDuration = 3000;
-        
+        this.nowSound = explode(3000)
         // Stop the car completely
         this.game.speed = 0;
         

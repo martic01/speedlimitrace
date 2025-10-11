@@ -2,6 +2,7 @@
 import chopper from "../../assets/images/chopper.png"
 import weatherDay from "../../assets/images/weather-day.webp"
 import weatherNight from "../../assets/images/weather-night.webp"
+import fire from "../../assets/images/animated-fire.gif"
 import rocks from "../../assets/images/stop-rock.png"
 import dropRocks from "../../assets/images/fall-rock.png"
 import missile1 from "../../assets/images/missilest.png"
@@ -9,14 +10,11 @@ import missile2 from "../../assets/images/missiles2.png"
 import roadBomb1 from "../../assets/images/tickbomb.png"
 import roadBomb2 from "../../assets/images/ballbomb.png"
 import explodeEffect from "../../assets/images/explosion.webp"
-import road from "../../assets/images/road-yellow-lane.png"
+import road1 from "../../assets/images/roads/road1.jpg"
 import driftWin from "../../assets/images/drift-win.webp"
 import driftLose from "../../assets/images/drift-lose.webp"
 import finish from "../../assets/images/finished.png"
 import carBomb from "../../assets/images/carbomb.png"
-import rightMountain from "../../assets/images/rightmountain.png"
-import leftMountain from "../../assets/images/leftmountain.png"
-import extraMountain from "../../assets/images/extramountain.png"
 import garage1 from "../../assets/images/garage.jpg"
 import garage2 from "../../assets/images/dgarage.png"
 
@@ -41,6 +39,7 @@ import redTopView from "../../assets/images/model3D/topviewr.png"
 
 import accelerate1Sound from "../../assets/audio/start1.mp3"
 import accelerate2Sound from "../../assets/audio/start2.mp3"
+import accelerate3Sound from "../../assets/audio/acce1.mp3"
 import drivingSound from "../../assets/audio/driving.mp3"
 import speedupSound from "../../assets/audio/speedup.mp3"
 import brakeSound from "../../assets/audio/brake.mp3"
@@ -49,8 +48,8 @@ import explodeSound from "../../assets/audio/explode.mp3"
 import crashSound from "../../assets/audio/crash.mp3"
 import lunchSound from "../../assets/audio/lunch.mp3"
 import otherSound from "../../assets/audio/wtrack.mp3"
-import gameSound2 from "../../assets/audio/gamesound1.mp3"
-import gameSound1 from "../../assets/audio/gamesound2.mp3"
+import gameSound1 from "../../assets/audio/gamesound1.mp3"
+import gameSound2 from "../../assets/audio/gamesound2.mp3"
 
 
 // 3D Files
@@ -64,6 +63,7 @@ import car3d7 from "../../assets/models/car3d7.glb"
 import car3d8 from "../../assets/models/lasttry2.glb"
 import chopper3d from "../../assets/models/3Dhover_craft.glb"
 import missile3d from "../../assets/models/3Dmissile.glb"
+import building from "../../assets/models/city.glb"
 
 
 const vechicles3D = {
@@ -76,7 +76,8 @@ const vechicles3D = {
     car3d7,
     car3d8,
     chopper3d,
-    missile3d
+    missile3d,
+    building
 }
 
 const vechicles = {
@@ -85,7 +86,8 @@ const vechicles = {
 }
 const weathers = {
     weatherDay,
-    weatherNight
+    weatherNight,
+    fire
 }
 const obstacles = {
     rocks,
@@ -95,13 +97,10 @@ const obstacles = {
     roadBomb1,
     roadBomb2,
     carBomb,
-    rightMountain,
-    leftMountain,
-    extraMountain,
     explodeEffect
 }
 const tracks = {
-    road,
+    road1,
     driftWin,
     driftLose,
     finish,
@@ -133,6 +132,7 @@ const garages = {
 const sounds = {
     accelerate1Sound,
     accelerate2Sound,
+    accelerate3Sound,
     drivingSound,
     speedupSound,
     brakeSound,

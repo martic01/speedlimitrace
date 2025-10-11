@@ -53,8 +53,16 @@ const gameMusic = () => {
 };
 
 const startAcc = () => {
-    const start = register(new Audio(sounds.accelerate1Sound));
+    const start = register(new Audio(sounds.accelerate2Sound));
     start.loop = true;
+     start.volume = 0.7
+    start.play().catch(err => console.log("Playback prevented:", err));
+    return start;
+};
+
+const raiseAcc = () => {
+    const start = register(new Audio(sounds.accelerate3Sound));
+     start.volume = 0.7
     start.play().catch(err => console.log("Playback prevented:", err));
     return start;
 };
@@ -67,6 +75,8 @@ const driving = () => {
 };
 const speedUp = () => {
     const speed = register(new Audio(sounds.speedupSound));
+    speed.loop = true
+    speed.volume = 0.7
     speed.play().catch(err => console.error("Playback prevented:", err));
     return speed;
 }
@@ -77,6 +87,7 @@ const honk = () => {
 }
 const brake = () => {
     const stop = register(new Audio(sounds.brakeSound));
+    stop.loop = true
     stop.play().catch(err => console.error("Playback prevented:", err));
     return stop;
 }
@@ -97,16 +108,31 @@ const blasted = (time) => {
     return [lunch, exploded];
 };
 
+const explode = (time) => {
+    const exploded = register(new Audio(sounds.explodeSound));
+    const crashSound = register(new Audio(sounds.crashSound));
+    clearTimeout(Rtime);
+ explode.volume = 0.2
+  crash.volume = 0.2
+    exploded.play().catch(err => console.error("check", err));
+    Rtime = setTimeout(() => {
+        crashSound.play().catch(err => console.error("Playback prevented:", err));
+    }, time);
+    return exploded
+}
+
 const crash = () => {
     const crashSound = register(new Audio(sounds.crashSound));
+     crashSound.volume = 0.7
     crashSound.play().catch(err => console.error("Playback prevented:", err));
     return crashSound;
 }
 
 
-const firstSound = (time) => {
+const firstSound = (time1, time2) => {
     const start = register(new Audio(sounds.accelerate2Sound));
     const speed = register(new Audio(sounds.speedupSound));
+    const brake = register(new Audio(sounds.brakeSound));
 
     clearTimeout(Rtime);
 
@@ -116,9 +142,14 @@ const firstSound = (time) => {
         stopMusic(start)
         speed.loop = true;
         speed.play().catch(err => console.error("check", err));
-    }, time);
+        Rtime = setTimeout(() => {
+            stopMusic(speed)
+            brake.loop = true;
+            brake.play().catch(err => console.error("check", err));
+        }, time2);
+    }, time1);
 
-    return [start, speed];
+    return [start, speed, brake];
 };
 
 
@@ -137,4 +168,4 @@ function stopSound() {
 
 
 
-export { stopMusic, stopAll, firstSound, startAcc, driving, gameMusic, blasted, crash, honk, brake, speedUp, stopSound };
+export { stopMusic, stopAll, firstSound, startAcc, raiseAcc, driving, gameMusic, blasted, explode, crash, honk, brake, speedUp, stopSound };

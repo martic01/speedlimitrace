@@ -13,6 +13,7 @@ export class TumbleSystem {
         this.tumbleDuration = 3000;
         this.tumbleStartTime = 0;
         
+
         this.explosionEffect = obstacles.explodeEffect;
         this.explosion = null;
     }

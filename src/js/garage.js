@@ -94,9 +94,9 @@ const garageVechicles = [
 
         // Car properties that come from the car itself
         maxSpeed: 0.13,
-        accel: 0.0006,
-        decel: 0.0001,
-        brakeDecel: 0.0002,
+        accel: 0.06,
+        decel: 0.03,
+        brakeDecel: 0.05,
         laneChangeSpeed: 0.1,
 
         // Protective system properties
@@ -145,8 +145,8 @@ const garageVechicles = [
         // Car properties that come from the car itself
         maxSpeed: 0.2,
         accel: 0.001,
-        decel: 0.001,
-        brakeDecel: 0.002,
+        decel: 0.0003,
+        brakeDecel: 0.0003,
         laneChangeSpeed: 0.2,
 
         // Protective system properties
@@ -196,8 +196,8 @@ const garageVechicles = [
 
         maxSpeed: 0.2,
         accel: 0.002,
-        decel: 0.001,
-        brakeDecel: 0.002,
+        decel: 0.0003,
+        brakeDecel: 0.0003,
         laneChangeSpeed: 0.2,
 
         // Protective system properties
@@ -247,8 +247,8 @@ const garageVechicles = [
 
         maxSpeed: 0.3,
         accel: 0.007,
-        decel: 0.01,
-        brakeDecel: 0.02,
+        decel: 0.0003,
+        brakeDecel: 0.0003,
         laneChangeSpeed: 0.2,
 
         // Protective system properties
@@ -290,8 +290,8 @@ const garageVechicles = [
 
         maxSpeed: 0.34,
         accel: 0.0074,
-        decel: 0.01,
-        brakeDecel: 0.03,
+        decel: 0.0005,
+        brakeDecel: 0.0005,
         laneChangeSpeed: 0.3,
 
         // Protective system properties
@@ -350,8 +350,8 @@ const garageVechicles = [
 
         maxSpeed: 0.4,
         accel: 0.008,
-        decel: 0.01,
-        brakeDecel: 0.03,
+        decel: 0.0005,
+        brakeDecel: 0.0005,
         laneChangeSpeed: 0.3,
 
         // Protective system properties
@@ -401,8 +401,8 @@ const garageVechicles = [
 
         maxSpeed: 0.5,
         accel: 0.01,
-        decel: 0.02,
-        brakeDecel: 0.03,
+        decel: 0.0005,
+        brakeDecel: 0.0005,
         laneChangeSpeed: 0.4,
 
         // Protective system properties
@@ -431,8 +431,8 @@ const garageVechicles = [
         name: 'Storm-rider ⚡',
         Car3D: vechicles3D.car3d8,
         CarImage: vechicles.redFrontView,
-        speed: '600km/h',
-        acceleration: '20m/s²',
+        speed: '1000km/h',
+        acceleration: '60m/s²',
         handling: 'Pro-Star🌟',
         selected: false,
 
@@ -450,11 +450,11 @@ const garageVechicles = [
         driveInStartZ: 6,
 
 
-        maxSpeed: 0.6,
-        accel: 0.02,
-        decel: 0.02,
-        brakeDecel: 0.03,
-        laneChangeSpeed: 0.5,
+        maxSpeed: 1,
+        accel: 0.6,
+        decel: 0.0005,
+        brakeDecel: 0.0005,
+        laneChangeSpeed: 0.6,
 
         // Protective system properties
         protectionDistance: 3000, // meters of protection
@@ -907,7 +907,7 @@ function garageInit() {
             loadCarModel(c);
             selectedCar = c
             Selectbtn.classList.add('selected');
-        } 
+        }
     });
 }
 
@@ -1014,7 +1014,7 @@ function selectCar(id) {
             selectedCar = car
         } else {
             car.selected = false;
-            
+
         }
     });
 }

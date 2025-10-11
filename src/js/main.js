@@ -1,8 +1,8 @@
 import "../css/style.css";
 import { load } from "./animate"
-import { stopMusic, firstSound, gameMusic, stopSound } from "./sounds";
-import { garageInit} from "./garage"
-import { startNewGame, setRaceDistance } from './game/index.js';
+import { stopMusic, firstSound, gameMusic, stopSound, stopAll } from "./sounds";
+import { garageInit } from "./garage"
+import { startNewGame, setRaceDistance, resetGame } from './game/index.js';
 
 let sound;
 
@@ -30,9 +30,9 @@ function preLoadGarage() {
 
 login.addEventListener('click', () => {
     loginpg.style.display = 'none';
-
+    stopAll()
     if (!sound) {
-        sound = firstSound(3000);
+        sound = firstSound(3000, 8400);
     }
 
     setTimeout(() => {
@@ -58,24 +58,34 @@ garagebtn.addEventListener('click', () => {
 // Start game buttons
 startbtn.forEach((b) => {
     b.addEventListener('click', () => {
-        setRaceDistance(1.0)
+        setRaceDistance(7.0)
         startNewGame();
+        stopAll()
     });
 });
 
-backbtn.forEach((b) => {
+backbtn.forEach((b, index) => {
     b.addEventListener('click', () => {
         screen.forEach(s => s.style.display = 'none');
         welcome.style.display = 'block';
+        console.log(index);
+
+        if (index === 1) {
+            stopAll()
+            resetGame()
+            sound = gameMusic()
+        }
+
     });
 });
 
 mutebtn.addEventListener('click', stopSound);
 
 // Initialize
+stopAll()
 preLoadGarage();
 garageInit()
-setupRaceDistanceButtons();
-
+// setRaceDistance(7.0)
+// startNewGame();
 
 
