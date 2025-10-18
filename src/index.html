@@ -133,13 +133,65 @@
     <section class="screen gamepg">
         <div class="gamebdy flex sky">
             <div class="we"></div>
+            <div class="display flex2">
+                <div class="topreadings">
+                    <button class="backbtn bbtn">
+                        &larr;-------
+                    </button>
+                </div>
+                <div class="meter flex2">
+                    <div class="com detail">
+                        <div class="headering">
+                            <div class="car-infosn">
+                                <h1 class="nmi">HYPER GT</h1>
+                            </div>
+                            <div class="status-icons">
+                                <div class="status-icon">
+                                    <p>👌</p>
+                                    <span class="hani">Handling</span>
+                                </div>
+                                <div class="status-icon">
+                                    <p>💨</p>
+                                    <span class="acceli">100%</span>
+                                </div>
+                                <div class="status-icon">
+                                    <p>☢️</p>
+                                    <span>SPORT</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="com speedo">
+                        <div class="gauge" aria-label="Speedometer">
+                            <canvas id="speedo" width="800" height="620"></canvas>
+                            <div id="labelLayer" class="label-layer"></div>
+                            <div class="readout">
+                                <div class="value" id="value">0</div>
+                                <div class="units">km/h</div>
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="ms">
+                        <div class="com missionbox flex">
+                            <div class="mission flex2">
+                                <div class="label flex">MIN SPEED</div>
+                                <div class="setspeedmin setsp flex">200</div>
+                                <p class="unit">KM/H</p>
+                            </div>
+                            <div class="mission flex2">
+                                <div class="label flex">MAX SPEED</div>
+                                <div class="setspeedmax setsp flex">400</div>
+                                <p class="unit">KM/H</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div class="earth flex">
-                <button class="backbtn bbtn">
-                    &larr;-------
-                </button>
-                
                 <div class="rock flex rg1">
-                    
+
                     <div class="road dg">
 
                     </div>

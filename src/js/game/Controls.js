@@ -1,4 +1,4 @@
-import { startAcc, driving, brake, raiseAcc, speedUp, stopAll, honk, stopMusic } from "../sounds";
+import { startAcc, brake, raiseAcc, speedUp, stopAll, honk, stopMusic } from "../sounds";
 
 export class Controls {
     constructor(game) {
@@ -39,12 +39,12 @@ export class Controls {
         const speed = this.game.speed;
         let newState = 'stopped';
 
-        if (speed >= 0.1) newState = 'high';
-        if (speed > 0.01 && speed < 0.1) newState = 'low';
+        if (speed >= 0.1) { newState = 'high'; }
+        if (speed > 0.01 && speed < 0.1) { newState = 'low'; }
 
         if (newState === this.lastSpeedState) return;
 
-        console.log(`🎧 Speed=${speed.toFixed(2)} | State=${this.lastSpeedState} → ${newState}`);
+        // console.log(`🎧 Speed=${speed.toFixed(2)} | State=${this.lastSpeedState} → ${newState}`);
 
         this.stopCurrentEngineSound();
 
@@ -104,19 +104,27 @@ export class Controls {
 
         if (e.key === 'b' && !this.braking && !tumbleSystem.isActive()) {
             this.braking = true;
-            this.playBrakeSoundUntilStop();
+            if (this.game.speed === 0) {
+                stopMusic(this.brakeSoundInstance);
+                stopAll()
+            } else {
+                this.playBrakeSoundUntilStop();
+            }
+
 
             this.brakeTimeout = setTimeout(() => {
+
+
                 if (this.game.speed > this.game.tumbleSystem.tumbleThreshold) {
                     this.game.tumbleSystem.startTumble();
                     this.stopCurrentEngineSound();
                     this.brakeSoundPlaying = false;
                 } else {
                     this.game.speed = 0;
-                    stopMusic(this.brakeSoundInstance);
                     this.brakeSoundPlaying = false;
                     this.lastSpeedState = '';
-                    this.updateSoundBasedOnSpeed();
+                    stopMusic(this.brakeSoundInstance);
+                    stopAll()
                 }
             }, 700);
         }

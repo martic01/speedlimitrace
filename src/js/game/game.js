@@ -6,7 +6,8 @@ import { Controls } from './Controls.js';
 import { Obstacles } from './Obstacles.js';
 import { Curves } from './Curves.js';
 import { TumbleSystem } from './TumbleSystem.js';
-
+import { setHolding, setMeters, updateSpeed, speedo } from './speedo.js';
+import { gameMusic, stopAll } from '../sounds.js';
 
 export class startGame {
     constructor(containerSelector = '.road', distanceKm = 1) {
@@ -27,10 +28,11 @@ export class startGame {
 
         // Use default values initially
         this.maxSpeed = 0.2;
-        this.accel = 0.002;
-        this.decel = 0.001;
-        this.brakeDecel = 0.003;
-
+        this.accel = 0.02;
+        this.decel = 0.01;
+        this.brakeDecel = 0.03;
+        this.minorTK = 1;
+        this.majorTK = 10;
         // Countdown system
         this.countdownActive = false;
         this.countdownValue = 5;
@@ -74,7 +76,7 @@ export class startGame {
         this.lastCountdownNumber = 5;
         this.carDriveInComplete = false;
 
-        console.log("🔴 Countdown started: 5");
+        // console.log("🔴 Countdown started: 5");
 
         // Set car to starting position and start animation
         if (this.car && this.car.mesh) {
@@ -87,7 +89,7 @@ export class startGame {
 
             // Start the drive-in animation
             this.car.startDriveInAnimation();
-            console.log("🚗 Starting drive-in animation from z=" + startZ);
+            // console.log("🚗 Starting drive-in animation from z=" + startZ);
         } else {
             console.warn("⚠️ Car mesh not available for drive-in animation");
         }
@@ -141,7 +143,7 @@ export class startGame {
                     }
                 }, 300);
 
-                console.log(`🔴 Countdown: ${remainingSeconds}`);
+                // console.log(`🔴 Countdown: ${remainingSeconds}`);
             }
         }
 
@@ -261,12 +263,13 @@ export class startGame {
         this.obstacles = new Obstacles(this.scene, this.car, this);
         this.curves = new Curves();
         this.tumbleSystem = new TumbleSystem(this.car, this.camera);
-
+        speedo()
         // FIXED: Add parentheses to method calls
         this.maxSpeed = this.car.getMaxSpeed ? this.car.getMaxSpeed() : 0.2;
-        this.accel = this.car.getAcceleration ? this.car.getAcceleration() : 0.002;
-        this.decel = this.car.getDeceleration ? this.car.getDeceleration() : 0.001;
-        this.brakeDecel = this.car.getBrakeDeceleration ? this.car.getBrakeDeceleration() : 0.003;
+        this.accel = this.car.getAcceleration ? this.car.getAcceleration() : 0.02;
+        this.decel = this.car.getDeceleration ? this.car.getDeceleration() : 0.01;
+        this.brakeDecel = this.car.getBrakeDeceleration ? this.car.getBrakeDeceleration() : 0.03;
+
 
         console.log("🚗 Car properties loaded:", {
             maxSpeed: this.maxSpeed,
@@ -482,39 +485,61 @@ export class startGame {
         console.log("✅ Bounce back completed");
     }
 
-    updateSpeed() {
-        // Don't allow acceleration during bounce back or countdown
+    // Call this each frame with dt in seconds (e.g., clock.getDelta())
+    updateSpeed(dt = 1 / 60) {
         if (this.isBouncingBack || this.countdownActive) return;
 
-        // Use car properties instead of hardcoded values
-        const maxSpeed = this.car.getMaxSpeed ? this.car.getMaxSpeed() : this.maxSpeed;
-        const accel = this.car.getAcceleration ? this.car.getAcceleration() : this.accel;
-        const brakeDecel = this.car.getBrakeDeceleration ? this.car.getBrakeDeceleration() : this.brakeDecel;
-        const decel = this.car.getDeceleration ? this.car.getDeceleration() : this.decel;
+        // Only slow rates, not the top speed
+        const rateScale = this.speedRateScale ?? 0.3; // lower = slower changes
+        const maxSpeedScale = this.maxSpeedScale ?? 1.0;
 
-        if (this.controls.upPressed && !this.raceFinished) {
-                this.speed = Math.min(maxSpeed, this.speed + 0.0004);
-            setTimeout(() => {
-                 this.speed = Math.min(maxSpeed, this.speed + accel);
-            },2000);
-        
-            console.log('the speed read',this.speed);
-            
-        }
-        if (this.controls.downPressed) {
-            this.speed = Math.max(0, this.speed - decel);
-             console.log('the speed read',this.speed);
-        }
+        // Normalize to 60fps
+        const dtNorm = dt * 60;
+
+        const baseMax = this.car.getMaxSpeed ? this.car.getMaxSpeed() : this.maxSpeed;
+        const baseAccel = this.car.getAcceleration ? this.car.getAcceleration() : this.accel;
+        const baseDecel = this.car.getDeceleration ? this.car.getDeceleration() : this.decel;
+        const baseBrake = this.car.getBrakeDeceleration ? this.car.getBrakeDeceleration() : this.brakeDecel;
+        const minorTK = this.car.getMinorTK ? this.car.getMinorTK() : this.minorTK;
+        const majorTk = this.car.getMajorTk ? this.car.getMajorTk() : this.majorTK
+
+        setMeters(
+            baseMax,
+            baseAccel,
+            baseDecel,
+            minorTK,
+            majorTk
+        )
+
+
+        const maxSpeed = baseMax * maxSpeedScale;
+        const accel = baseAccel * dtNorm; // No rate scale for acceleration
+        const decel = baseDecel * dtNorm * rateScale;
+        const brakeDecel = baseBrake * dtNorm * rateScale;
+        const coastDecel = (this.coastDecel ?? 0.004) * dtNorm * rateScale;
+
         if (this.controls.braking) {
             this.speed = Math.max(0, this.speed - brakeDecel);
-             console.log('the speed read',this.speed);
+            setHolding(false);
+        } else if (this.controls.downPressed) {
+            this.speed = Math.max(0, this.speed - decel);
+            setHolding(false);
+        } else if (this.controls.upPressed && !this.raceFinished) {
+            this.speed = Math.min(maxSpeed, this.speed + accel);
+            setHolding(true);
+        } else if (!this.raceFinished) {
+            this.speed = Math.max(0, this.speed - coastDecel);
+            setHolding(false);
         }
-        if (!this.controls.upPressed && !this.controls.downPressed && !this.controls.braking && !this.raceFinished) {
-            this.speed = Math.max(0, this.speed - 0.002);
-             console.log('the speed read',this.speed);
+
+        if (this.speed < 1e-6) this.speed = 0;
+
+        if (typeof updateSpeed === 'function') {
+            updateSpeed(this.speed);
+        } else if (typeof this.onSpeedChange === 'function') {
+            this.onSpeedChange(this.speed);
         }
     }
-
     handleLaneChanges() {
         // Don't allow lane changes during countdown
         if (this.countdownActive) return;
@@ -588,7 +613,7 @@ export class startGame {
                 car.rotation.z = 0;
                 car.position.x = 0;
                 this.speed = 0;
-                console.log("🔥 Drift completed!");
+                // console.log("🔥 Drift completed!");
             }
         };
 
@@ -644,6 +669,8 @@ export class startGame {
 
     checkFinishLine() {
         if (!this.hasCrossedFinishLine && this.totalDistance >= this.raceDistance) {
+            stopAll()
+            this.nowSound = gameMusic()
             this.hasCrossedFinishLine = true;
             this.raceFinished = true;
             console.log(`🏁 Finish line reached at ${(this.totalDistance / 1000).toFixed(2)} km`);
@@ -657,9 +684,10 @@ export class startGame {
         // KEEP UPDATING ROAD EVEN AFTER FINISH LINE
         if (this.raceFinished) {
             // Smooth deceleration
+           
             this.speed = Math.max(0, this.speed - this.brakeDecel * 1.5);
             this.controls.currentLane = 1;
-
+             
             // Continue road movement until car completely stops
             if (this.speed > 0.01) {
                 const distanceThisFrame = this.speed * 5;
@@ -721,3 +749,6 @@ export class startGame {
 }
 
 export default startGame;
+
+
+

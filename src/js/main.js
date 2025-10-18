@@ -6,7 +6,6 @@ import { startNewGame, setRaceDistance, resetGame } from './game/index.js';
 
 let sound;
 
-
 const loader = document.querySelector('.loaderpg');
 const welcome = document.querySelector('.welcomepg');
 const login = document.querySelector('.loginbtn');
@@ -58,7 +57,7 @@ garagebtn.addEventListener('click', () => {
 // Start game buttons
 startbtn.forEach((b) => {
     b.addEventListener('click', () => {
-        setRaceDistance(7.0)
+        setRaceDistance(2.0)
         startNewGame();
         stopAll()
     });
@@ -85,7 +84,7 @@ mutebtn.addEventListener('click', stopSound);
 stopAll()
 preLoadGarage();
 garageInit()
-// setRaceDistance(7.0)
-// startNewGame();
+setRaceDistance(1.0)
+startNewGame();
 
 

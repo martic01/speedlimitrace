@@ -10,10 +10,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { garages, vechicles3D, vechicles } from "../constants/material.js";
 import { stopMusic, startAcc } from "./sounds.js";
 
+// Debug what Three version is actually loaded
+try {
+    console.log('THREE REV:', THREE.REVISION);
+} catch {}
 
 // --- UI References ---
 const changeCar = document.querySelector('.change');
-const garagesw = document.querySelector('.garagesw')
+const garagesw = document.querySelector('.garagesw');
 const carContainer = document.querySelector('.car');
 const carInfo = document.querySelector('.carinfo');
 const carName = document.querySelector('.name');
@@ -40,12 +44,12 @@ const VIEW_PRESETS = {
         enabled: true
     },
     front2: {
-        cameraPosition: { x: 0, y: -0.7, z: -5 },  // Fixed: Positive Z for front, negative Z for back
+        cameraPosition: { x: 0, y: -0.7, z: 5 },  // +Z for front
         cameraLookAt: { x: 0, y: 0, z: 0 },
         enabled: true
     },
     back: {
-        cameraPosition: { x: 0, y: -0.7, z: -5 },  // Fixed: Positive Z for front, negative Z for back
+        cameraPosition: { x: 0, y: -0.7, z: -5 }, // -Z for back
         cameraLookAt: { x: 0, y: 0, z: 0 },
         enabled: true
     },
@@ -55,7 +59,7 @@ const VIEW_PRESETS = {
         enabled: true
     },
     under: {
-        cameraPosition: { x: 0, y: 3, z: 0.1 },
+        cameraPosition: { x: 0, y: -3, z: 0.1 }, // under = negative Y
         cameraLookAt: { x: 0, y: 0, z: 0 },
         enabled: true
     },
@@ -66,7 +70,8 @@ const VIEW_PRESETS = {
     }
 };
 
-let float = Math.PI / 2.1
+let float = Math.PI / 2.1;
+
 // --- Car & Garage Data ---
 const garageVechicles = [
     {
@@ -74,13 +79,12 @@ const garageVechicles = [
         name: 'Fast time',
         Car3D: vechicles3D.car3d1,
         CarImage: vechicles.redFrontView,
-        speed: '130km/h',
-        acceleration: '0.6m/s²',
+        speed: '150km/h',
+        acceleration: '10m/s²',
         handling: 'Medium',
         selected: true,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.5, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.5, z: 0 },
         initialView: 'front',
         scaleConfig: {
             minScale: 1,
@@ -92,31 +96,29 @@ const garageVechicles = [
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-        // Car properties that come from the car itself
-        maxSpeed: 0.13,
-        accel: 0.06,
-        decel: 0.03,
-        brakeDecel: 0.05,
+        maxSpeed: 0.15,
+        accel: 0.01,
+        decel: 0.008,
+        brakeDecel: 0.02,
+        minorTK: 2,
+        majorTK: 10,
         laneChangeSpeed: 0.1,
 
-        // Protective system properties
-        protectionDistance: 300, // meters of protection
+        protectionDistance: 300,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
-        // Disable specific views (user can't rotate to these)
+
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -125,12 +127,11 @@ const garageVechicles = [
         Car3D: vechicles3D.car3d2,
         CarImage: vechicles.redFrontView,
         speed: '200km/h',
-        acceleration: '1m/s²',
+        acceleration: '10m/s²',
         handling: 'Medium',
         selected: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.5, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.5, z: 0 },
         initialView: 'front',
         scaleConfig: {
             minScale: 1,
@@ -142,32 +143,29 @@ const garageVechicles = [
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-        // Car properties that come from the car itself
         maxSpeed: 0.2,
-        accel: 0.001,
-        decel: 0.0003,
-        brakeDecel: 0.0003,
+        accel: 0.01,
+        decel: 0.008,
+        brakeDecel: 0.03,
+        minorTK: 2,
+        majorTK: 20,
         laneChangeSpeed: 0.2,
 
-        // Protective system properties
-        protectionDistance: 400, // meters of protection
+        protectionDistance: 400,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // Disable specific views (user can't rotate to these)
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -176,12 +174,11 @@ const garageVechicles = [
         Car3D: vechicles3D.car3d3,
         CarImage: vechicles.redFrontView,
         speed: '200km/h',
-        acceleration: '2m/s²',
+        acceleration: '10m/s²',
         handling: 'Good',
         selected: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.5, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.5, z: 0 },
         initialView: 'front',
         scaleConfig: {
             minScale: 1,
@@ -193,32 +190,29 @@ const garageVechicles = [
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-
         maxSpeed: 0.2,
-        accel: 0.002,
-        decel: 0.0003,
-        brakeDecel: 0.0003,
+        accel: 0.01,
+        decel: 0.008,
+        brakeDecel: 0.03,
+        minorTK: 2,
+        majorTK: 20,
         laneChangeSpeed: 0.2,
 
-        // Protective system properties
-        protectionDistance: 500, // meters of protection
+        protectionDistance: 500,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // Disable specific views (user can't rotate to these)
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -227,12 +221,11 @@ const garageVechicles = [
         Car3D: vechicles3D.car3d4,
         CarImage: vechicles.redFrontView,
         speed: '300km/h',
-        acceleration: '7m/s²',
+        acceleration: '20m/s²',
         handling: 'Good',
         selected: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.388, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.388, z: 0 },
         initialView: 'front',
         scaleConfig: {
             minScale: 1,
@@ -244,32 +237,29 @@ const garageVechicles = [
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-
         maxSpeed: 0.3,
-        accel: 0.007,
-        decel: 0.0003,
-        brakeDecel: 0.0003,
+        accel: 0.02,
+        decel: 0.008,
+        brakeDecel: 0.07,
+        minorTK: 3,
+        majorTK: 30,
         laneChangeSpeed: 0.2,
 
-        // Protective system properties
-        protectionDistance: 500, // meters of protection
+        protectionDistance: 500,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // Disable specific views (user can't rotate to these)
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -277,50 +267,42 @@ const garageVechicles = [
         name: 'Wizard',
         Car3D: vechicles3D.car3d5,
         CarImage: vechicles.redFrontView,
-        speed: '340km/h',
-        acceleration: '7.4m/s²',
+        speed: '400km/h',
+        acceleration: '20m/s²',
         handling: 'Pro',
         selected: false,
-
 
         carPosition: { x: 0, y: 0.3, z: -6 },
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-
-        maxSpeed: 0.34,
-        accel: 0.0074,
-        decel: 0.0005,
-        brakeDecel: 0.0005,
+        maxSpeed: 0.4,
+        accel: 0.02,
+        decel: 0.008,
+        brakeDecel: 0.07,
+        minorTK: 3,
+        majorTK: 40,
         laneChangeSpeed: 0.3,
 
-        // Protective system properties
-        protectionDistance: 500, // meters of protection
+        protectionDistance: 500,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.5, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.5, z: 0 },
         initialView: 'front',
-        scaleConfig: {
-            minScale: 1,
-            maxScale: 2,
-            defaultScale: 2
-        },
-        // Disable specific views (user can't rotate to these)
+        scaleConfig: { minScale: 1, maxScale: 2, defaultScale: 2 },
+
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -328,51 +310,42 @@ const garageVechicles = [
         name: '🔥 At Last 🔥',
         Car3D: vechicles3D.car3d6,
         CarImage: vechicles.redFrontView,
-        speed: '400km/h',
-        acceleration: '8m/s²',
+        speed: '500km/h',
+        acceleration: '30m/s²',
         handling: 'LENGEND 🔥',
         selected: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.47, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.47, z: 0 },
         initialView: 'front',
-        scaleConfig: {
-            minScale: 1,
-            maxScale: 2,
-            defaultScale: 2
-        },
-
+        scaleConfig: { minScale: 1, maxScale: 2, defaultScale: 2 },
 
         carPosition: { x: 0, y: 0.3, z: -6 },
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-
-        maxSpeed: 0.4,
-        accel: 0.008,
-        decel: 0.0005,
-        brakeDecel: 0.0005,
+        maxSpeed: 0.5,
+        accel: 0.03,
+        decel: 0.009,
+        brakeDecel: 0.07,
+        minorTK: 4,
+        majorTK: 50,
         laneChangeSpeed: 0.3,
 
-        // Protective system properties
-        protectionDistance: 700, // meters of protection
+        protectionDistance: 700,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // Disable specific views (user can't rotate to these)
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -380,50 +353,42 @@ const garageVechicles = [
         name: 'Fear 🤬',
         Car3D: vechicles3D.car3d7,
         CarImage: vechicles.redFrontView,
-        speed: '500km/h',
-        acceleration: '10m/s²',
+        speed: '700km/h',
+        acceleration: '30m/s²',
         handling: 'STAR 🌟',
         selected: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.47, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.47, z: 0 },
         initialView: 'front',
-        scaleConfig: {
-            minScale: 1,
-            maxScale: 2,
-            defaultScale: 2
-        },
+        scaleConfig: { minScale: 1, maxScale: 2, defaultScale: 2 },
 
         carPosition: { x: 0, y: 0.3, z: -6 },
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-
-        maxSpeed: 0.5,
-        accel: 0.01,
-        decel: 0.0005,
-        brakeDecel: 0.0005,
+        maxSpeed: 0.7,
+        accel: 0.03,
+        decel: 0.01,
+        brakeDecel: 0.07,
+        minorTK: 4,
+        majorTK: 70,
         laneChangeSpeed: 0.4,
 
-        // Protective system properties
-        protectionDistance: 1200, // meters of protection
+        protectionDistance: 1200,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // Disable specific views (user can't rotate to these)
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
     {
@@ -432,49 +397,41 @@ const garageVechicles = [
         Car3D: vechicles3D.car3d8,
         CarImage: vechicles.redFrontView,
         speed: '1000km/h',
-        acceleration: '60m/s²',
+        acceleration: '40m/s²',
         handling: 'Pro-Star🌟',
         selected: false,
 
-        // New configuration options
-        modelPosition: { x: 0, y: -0.47, z: 0 }, // Raised position
+        modelPosition: { x: 0, y: -0.47, z: 0 },
         initialView: 'front',
-        scaleConfig: {
-            minScale: 1,
-            maxScale: 2,
-            defaultScale: 2
-        },
+        scaleConfig: { minScale: 1, maxScale: 2, defaultScale: 2 },
 
         carPosition: { x: 0, y: 0.3, z: -6 },
         carScaleConfig: { defaultScale: 3.7 },
         driveInStartZ: 6,
 
-
         maxSpeed: 1,
-        accel: 0.6,
-        decel: 0.0005,
-        brakeDecel: 0.0005,
+        accel: 0.04,
+        decel: 0.01,
+        brakeDecel: 0.07,
+        minorTK: 10,
+        majorTK: 100,
         laneChangeSpeed: 0.6,
 
-        // Protective system properties
-        protectionDistance: 3000, // meters of protection
+        protectionDistance: 3000,
         hasProtection: false,
         protectionRemaining: 3,
         protectionActive: false,
 
-        // Disable specific views (user can't rotate to these)
         disabledViews: {
-            under: true,     // User CAN view from under
-            top: false,       // User CAN view from top
-            back: false,       // User CANNOT view from back
-            // front, side are always enabled by default
+            under: true,
+            top: false,
+            back: false
         },
-        // Rotation limits (in radians)
         rotationLimits: {
-            minPolarAngle: float,      // 90° - fixed vertical angle
-            maxPolarAngle: Math.PI / 2,      // 90° - same as min to lock vertical rotation
-            minAzimuthAngle: -Infinity,      // Unlimited horizontal rotation
-            maxAzimuthAngle: Infinity        // Unlimited horizontal rotation
+            minPolarAngle: float,
+            maxPolarAngle: Math.PI / 2,
+            minAzimuthAngle: -Infinity,
+            maxAzimuthAngle: Infinity
         }
     },
 ];
@@ -488,6 +445,7 @@ const garageBackgrounds = [
 let scene, camera, renderer, currentCar, controls;
 let using3D = false;
 let currentCarConfig = null;
+let currentBgIndex = Math.max(0, garageBackgrounds.findIndex(g => g.selected));
 
 // --- WebGL Detection ---
 function isWebGLAvailable() {
@@ -495,13 +453,14 @@ function isWebGLAvailable() {
         const canvas = document.createElement('canvas');
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         return !!gl;
-    } catch (e) {
+    } catch {
         return false;
     }
 }
 
 // --- UI Fallbacks ---
 function showImageFallback(imageUrl, carName) {
+    if (!carContainer) return;
     carContainer.innerHTML = `
         <div class="image-fallback ">
             <img src="${imageUrl}" alt="${carName}" >
@@ -512,6 +471,7 @@ function showImageFallback(imageUrl, carName) {
 }
 
 function showWebGLError() {
+    if (!carContainer) return;
     carContainer.innerHTML = `
         <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;background:#ff6b6b;color:#fff;border-radius:10px;padding:20px;">
             <h3>🚫 3D Not Supported</h3>
@@ -522,7 +482,6 @@ function showWebGLError() {
 
 // --- Create Test Cube ---
 function createTestCube() {
-    console.log('🎲 Creating test cube...');
     const geometry = new THREE.BoxGeometry(1, 1, 1);
     const material = new THREE.MeshPhongMaterial({
         color: 0x00ff00,
@@ -534,7 +493,7 @@ function createTestCube() {
     return cube;
 }
 
-// --- Renderer Factory ---
+// --- Renderer Factory (back-compatible) ---
 function createWebGLRenderer(container) {
     try {
         const renderer = new THREE.WebGLRenderer({
@@ -543,10 +502,31 @@ function createWebGLRenderer(container) {
         });
 
         renderer.setSize(container.clientWidth, container.clientHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000000, 0);
+        if (renderer.setPixelRatio) {
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        }
+        if (renderer.setClearColor) {
+            renderer.setClearColor(0x000000, 0);
+        }
 
-        console.log('✅ Renderer created successfully');
+        // Color management: prefer outputEncoding if it exists, else gammaOutput
+        if ('outputEncoding' in renderer && 'sRGBEncoding' in THREE) {
+            renderer.outputEncoding = THREE.sRGBEncoding;
+        } else if ('gammaOutput' in renderer) {
+            renderer.gammaOutput = true;
+            renderer.gammaFactor = 2.2;
+        }
+
+        // Tone mapping if available
+        if ('toneMapping' in renderer && typeof THREE.ACESFilmicToneMapping !== 'undefined') {
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        }
+
+        // Physically-correct lights if available
+        if ('physicallyCorrectLights' in renderer) {
+            renderer.physicallyCorrectLights = true;
+        }
+
         return renderer;
     } catch (e) {
         console.error("❌ Renderer creation failed:", e);
@@ -557,8 +537,6 @@ function createWebGLRenderer(container) {
 // --- Apply Car Configuration ---
 function applyCarConfiguration(carConfig) {
     if (!controls || !carConfig) return;
-
-    console.log('⚙️ Applying car configuration:', carConfig.name);
 
     // Apply rotation limits
     const limits = carConfig.rotationLimits || {};
@@ -571,12 +549,6 @@ function applyCarConfiguration(carConfig) {
     const scaleConfig = carConfig.scaleConfig || {};
     controls.minDistance = scaleConfig.minScale !== undefined ? scaleConfig.minScale : 2;
     controls.maxDistance = scaleConfig.maxScale !== undefined ? scaleConfig.maxScale : 10;
-
-    console.log('📐 Applied limits:', {
-        polarAngle: `[${controls.minPolarAngle.toFixed(2)}, ${controls.maxPolarAngle.toFixed(2)}]`,
-        azimuthAngle: `[${controls.minAzimuthAngle}, ${controls.maxAzimuthAngle}]`,
-        distance: `[${controls.minDistance}, ${controls.maxDistance}]`
-    });
 }
 
 // --- Set Camera View ---
@@ -593,18 +565,25 @@ function setCameraView(viewName, carConfig) {
     }
 
     const preset = VIEW_PRESETS[viewName];
-    camera.position.set(preset.cameraPosition.x, preset.cameraPosition.y, preset.cameraPosition.z);
-    camera.lookAt(preset.cameraLookAt.x, preset.cameraLookAt.y, preset.cameraLookAt.z);
 
-    console.log(`📷 Camera set to: ${viewName}`);
+    const lookAt = (currentCar?.position) || new THREE.Vector3(
+        preset.cameraLookAt.x, preset.cameraLookAt.y, preset.cameraLookAt.z
+    );
+
+    camera.position.set(preset.cameraPosition.x, preset.cameraPosition.y, preset.cameraPosition.z);
+    camera.lookAt(lookAt);
+
+    if (controls && controls.target) {
+        controls.target.copy(lookAt);
+        controls.update();
+    }
+
     return true;
 }
 
 // --- Init Scene ---
 function init3DScene(container) {
     try {
-        console.log('🚀 Initializing 3D scene...');
-
         scene = new THREE.Scene();
         scene.background = null;
 
@@ -624,16 +603,12 @@ function init3DScene(container) {
         container.innerHTML = '';
         container.appendChild(renderer.domElement);
 
-        // 🔧 Force initial size and projection update
-        renderer.setSize(container.clientWidth, container.clientHeight);
+        // Force initial size and projection update
+        if (renderer.setSize) renderer.setSize(container.clientWidth, container.clientHeight);
         camera.aspect = container.clientWidth / container.clientHeight;
         camera.updateProjectionMatrix();
 
-        // --- Better lighting setup ---
-        renderer.physicallyCorrectLights = true;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.outputEncoding = THREE.sRGBEncoding;
-
+        // Lights
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
         scene.add(ambientLight);
 
@@ -653,25 +628,24 @@ function init3DScene(container) {
 
         // Animation loop
         function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
+            if (typeof requestAnimationFrame !== 'undefined') requestAnimationFrame(animate);
+            if (controls && controls.update) controls.update();
             renderer.render(scene, camera);
         }
         animate();
 
-        // 🚑 Force first render (fix "invisible until resize")
+        // First render
         renderer.render(scene, camera);
 
         // Handle resize
         window.addEventListener('resize', () => {
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.render(scene, camera); // render again on resize
+            if (renderer.setSize) renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.render(scene, camera);
         });
 
         using3D = true;
-        console.log('✅ 3D scene initialized successfully');
         return true;
 
     } catch (e) {
@@ -681,16 +655,33 @@ function init3DScene(container) {
     }
 }
 
+// --- Disposal helper (materials, textures, geometries) ---
+function disposeObject3D(object) {
+    if (!object) return;
+    object.traverse((child) => {
+        if (child.isMesh) {
+            if (child.geometry) child.geometry.dispose();
+            const materials = Array.isArray(child.material) ? child.material : [child.material];
+            materials.forEach((mat) => {
+                if (!mat) return;
+                // Dispose textures attached to the material
+                for (const key in mat) {
+                    const value = mat[key];
+                    if (value && value.isTexture && value.dispose) value.dispose();
+                }
+                if (mat.dispose) mat.dispose();
+            });
+        }
+    });
+}
 
 // --- Load Car Model ---
 function loadCarModel(carData) {
     if (!using3D || !renderer) {
-        console.log('❌ Using image fallback for:', carData.name);
         showImageFallback(carData.CarImage, carData.name);
         return;
     }
 
-    console.log('🔄 Loading 3D model:', carData.name);
     currentCarConfig = carData;
 
     // Show loading animation
@@ -700,43 +691,23 @@ function loadCarModel(carData) {
     loader.load(
         carData.Car3D,
         (gltf) => {
-            console.log('✅ Model loaded successfully:', carData.name);
-
             // Clean up previous car
             if (currentCar) {
                 scene.remove(currentCar);
-                currentCar.traverse((child) => {
-                    if (child.isMesh) {
-                        child.geometry.dispose();
-                        child.material.dispose();
-                    }
-                });
+                disposeObject3D(currentCar);
+                currentCar = null;
             }
 
-            // Remove any test cubes or helpers
-            scene.children.forEach(child => {
-                if (child instanceof THREE.BoxHelper ||
-                    (child.isMesh && child.material && child.material.color && child.material.color.getHex() === 0x00ff00)) {
-                    scene.remove(child);
-                }
-            });
-
-            currentCar = gltf.scene;
+            currentCar = gltf.scene || (gltf.scenes && gltf.scenes[0]) || createTestCube();
 
             // Apply model position
             const position = carData.modelPosition || { x: 0, y: 0, z: 0 };
             currentCar.position.set(position.x, position.y, position.z);
-            console.log('📍 Model position set to:', position);
 
-            // Scale model
-            const scaleConfig = carData.scaleConfig || {};
-            const defaultScale = scaleConfig.defaultScale || 2;
-
+            // Scale model based on bounding box
             const box = new THREE.Box3().setFromObject(currentCar);
             const size = new THREE.Vector3();
             box.getSize(size);
-
-            console.log('📏 Model size:', size);
 
             if (size.length() === 0) {
                 console.warn('⚠️ Model has zero size, might be empty');
@@ -744,13 +715,20 @@ function loadCarModel(carData) {
                 scene.add(fallbackCube);
                 currentCar = fallbackCube;
             } else {
+                const scaleConfig = carData.scaleConfig || {};
+                const defaultScale = scaleConfig.defaultScale || 2;
                 const maxDim = Math.max(size.x, size.y, size.z);
                 const scale = defaultScale / maxDim;
                 currentCar.scale.set(scale, scale, scale);
-                console.log('📐 Model scaled to:', currentCar.scale);
             }
 
             scene.add(currentCar);
+
+            // Keep orbit target centered on the car
+            if (controls) {
+                controls.target.copy(currentCar.position);
+                controls.update();
+            }
 
             // Apply car-specific configuration
             applyCarConfiguration(carData);
@@ -759,15 +737,13 @@ function loadCarModel(carData) {
             const initialView = carData.initialView || 'front';
             setCameraView(initialView, carData);
 
-            console.log('🎯 Car configuration applied successfully');
-
-            // Wait for next frame to ensure model is rendered, then hide loading
+            // Finalize UI
             requestAnimationFrame(() => {
                 setTimeout(() => {
                     hideLoadingAnimation();
-                    updateCarInfo(carData)
+                    updateCarInfo(carData);
                     animateCarIn();
-                }, 500); // Small delay to ensure smooth transition
+                }, 500);
             });
 
         },
@@ -778,23 +754,30 @@ function loadCarModel(carData) {
             if (xhr.lengthComputable) {
                 percentLoaded = (xhr.loaded / xhr.total * 100);
             } else {
-                // fallback (loaded grows, but total is unknown)
                 percentLoaded = Math.min((xhr.loaded / 1000000) * 100, 99);
             }
 
-            console.log(`📦 Loading: ${percentLoaded.toFixed(1)}%`);
             updateLoadingProgress(percentLoaded);
         },
         (err) => {
             console.error("❌ Model load failed:", err);
 
-            const fallbackCube = createTestCube();
-            scene.add(fallbackCube);
-            currentCar = fallbackCube;
+            if (currentCar) {
+                scene.remove(currentCar);
+                disposeObject3D(currentCar);
+                currentCar = null;
+            }
 
-            // Hide loading and show fallback
+            // Use a simple cube instead of removing the canvas
+            currentCar = createTestCube();
+            scene.add(currentCar);
+
+            if (controls) {
+                controls.target.copy(currentCar.position);
+                controls.update();
+            }
+
             hideLoadingAnimation();
-            showImageFallback(carData.CarImage, carData.name);
         }
     );
 }
@@ -830,29 +813,20 @@ function showLoadingAnimation(carName = '') {
         </div>
     `;
 
-    carContainer.insertAdjacentHTML('beforeend', loadingHTML);
+    carContainer?.insertAdjacentHTML('beforeend', loadingHTML);
 
     // Add CSS animation
     if (!document.querySelector('#loading-animation-style')) {
         const style = document.createElement('style');
         style.id = 'loading-animation-style';
         style.textContent = `
-            @keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.7; }
-            }
-            .loading-pulse {
-                animation: pulse 1.5s ease-in-out infinite;
-            }
+            @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+            .loading-pulse { animation: pulse 1.5s ease-in-out infinite; }
         `;
         document.head.appendChild(style);
     }
 }
-
 
 function updateLoadingProgress(percent) {
     const progressBar = document.getElementById('loading-progress-bar');
@@ -873,160 +847,170 @@ function updateLoadingProgress(percent) {
     }
 }
 
+let soundtime;
+let switchsound;
 function hideLoadingAnimation() {
-    stopMusic(switchsound)
-    clearTimeout(soundtime)
+    try { stopMusic?.(switchsound); } catch {}
+    clearTimeout(soundtime);
     const loadingElement = document.getElementById('model-loading');
     if (loadingElement) {
-        // Add fade out animation
         loadingElement.style.opacity = '0';
         loadingElement.style.transition = 'opacity 0.3s ease';
 
         setTimeout(() => {
             loadingElement.remove();
-
         }, 300);
     }
-
-    // Also remove any existing progress elements
-    const progressBar = document.getElementById('loading-progress-bar');
-    const percentageText = document.getElementById('loading-percentage');
-    if (progressBar) progressBar.remove();
-    if (percentageText) percentageText.remove();
 }
 
+// --- Garage Init ---
 function garageInit() {
-    stopMusic(switchsound)
-    clearTimeout(soundtime)
+    try { stopMusic?.(switchsound); } catch {}
+    clearTimeout(soundtime);
 
     const v = [...garageVechicles];
 
-    v.forEach(c => {
-        if (c.selected) {
-            Selectbtn.setAttribute('id', c.id);
-            loadCarModel(c);
-            selectedCar = c
-            Selectbtn.classList.add('selected');
-        }
-    });
+    const firstSelected = v.find(c => c.selected);
+    if (firstSelected) {
+        Selectbtn?.setAttribute('id', firstSelected.id);
+        loadCarModel(firstSelected);
+        selectedCar = firstSelected;
+        Selectbtn?.classList.add('selected');
+    }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    console.log('🏠 DOM loaded, initializing 3D viewer...');
-
-    if (carContainer.clientWidth === 0 || carContainer.clientHeight === 0) {
+    if (carContainer && (carContainer.clientWidth === 0 || carContainer.clientHeight === 0)) {
         carContainer.style.width = '100%';
         carContainer.style.height = '700px';
-        console.log('📐 Set container dimensions');
     }
 
     if (isWebGLAvailable()) {
-        console.log('✅ WebGL is available');
         if (init3DScene(carContainer)) {
             const initialCar = garageVechicles.find(c => c.selected);
             if (initialCar) {
-                console.log('🚗 Loading initial car:', initialCar.name);
                 setTimeout(() => loadCarModel(initialCar), 500);
             }
         } else {
-            console.log('❌ 3D initialization failed, using fallback');
             showWebGLError();
             const initialCar = garageVechicles.find(c => c.selected);
             if (initialCar) showImageFallback(initialCar.CarImage, initialCar.name);
         }
     } else {
-        console.log('❌ WebGL not available, using fallback');
         showWebGLError();
         const initialCar = garageVechicles.find(c => c.selected);
         if (initialCar) showImageFallback(initialCar.CarImage, initialCar.name);
     }
+
+    // Safe event bindings
+    Selectbtn?.addEventListener('click', function () {
+        selectCar(Selectbtn.id);
+    });
+
+    changeCar?.addEventListener('click', changeSelection);
+    garagesw?.addEventListener('click', selectGarage);
+
+    // Initialize background once
+    if (garage) {
+        const bg = garageBackgrounds[currentBgIndex] ?? garageBackgrounds[0];
+        garageBackgrounds.forEach((g, i) => g.selected = (i === currentBgIndex));
+        garage.style.backgroundImage = `url(${bg.image})`;
+    }
 });
 
 // --- UI Animations ---
-let soundtime;
-let switchsound;
 function animateCarIn() {
-    switchsound = startAcc();
-    carInfo.style.animation = 'none';
-    carContainer.style.animation = 'none';
-    void carInfo.offsetWidth;
-    void carContainer.offsetWidth;
+    switchsound = startAcc?.();
+    if (carInfo) {
+        carInfo.style.animation = 'none';
+        void carInfo.offsetWidth;
+        carInfo.style.animation = 'slideIn2 1s linear forwards';
+    }
+    if (carContainer) {
+        carContainer.style.animation = 'none';
+        void carContainer.offsetWidth;
+        carContainer.style.animation = 'slideIn 1s linear forwards';
+    }
 
-    carInfo.style.animation = 'slideIn2 1s linear forwards';
-    carContainer.style.animation = 'slideIn 1s linear forwards';
-
-    changeCar.style.pointerEvents = 'none';
+    if (changeCar) changeCar.style.pointerEvents = 'none';
     soundtime = setTimeout(() => {
-        stopMusic(switchsound);
-        changeCar.style.pointerEvents = 'auto';
+        try { stopMusic?.(switchsound); } catch {}
+        if (changeCar) changeCar.style.pointerEvents = 'auto';
     }, 2800);
 }
 
-
 function updateCarInfo(infos) {
-    const picked = infos.selected
-    carName.textContent = infos.name;
-    speed.textContent = infos.speed;
-    acceleration.textContent = infos.acceleration;
-    handling.textContent = infos.handling;
-    protect.textContent = infos.protectionDistance + 'm';
+    const picked = !!infos?.selected;
+    if (carName) carName.textContent = infos?.name ?? '';
+    if (speed) speed.textContent = infos?.speed ?? '';
+    if (acceleration) acceleration.textContent = infos?.acceleration ?? '';
+    if (handling) handling.textContent = infos?.handling ?? '';
+    if (protect) protect.textContent = ((infos?.protectionDistance ?? 0) + 'm');
 
-    selecttxt.textContent = picked ? 'Selected' : 'Select';
-    if (picked) {
-        Selectbtn.classList.add('selected');
-    } else {
-        Selectbtn.classList.remove('selected');
+    if (selecttxt) selecttxt.textContent = picked ? 'Selected' : 'Select';
+    if (Selectbtn) {
+        if (picked) Selectbtn.classList.add('selected');
+        else Selectbtn.classList.remove('selected');
     }
 }
+
 // --- Selection Logic ---
-
-
 let count = 0;
 function changeSelection() {
-    stopMusic(switchsound)
-    clearTimeout(soundtime)
+    try { stopMusic?.(switchsound); } catch {}
+    clearTimeout(soundtime);
 
     const v = garageVechicles;
     count = (count + 1) % v.length;
-    Selectbtn.setAttribute('id', v[count].id);
+    Selectbtn?.setAttribute('id', v[count].id);
+    v.forEach(c => (c.selected = false));
     loadCarModel(v[count]);
+    updateCarInfo(v[count]);
 }
 
-
-
 function selectGarage() {
-    stopMusic(switchsound)
-    clearTimeout(soundtime)
-    garageBackgrounds.forEach(g => g.selected = !g.selected);
-    const bg = garageBackgrounds.find(g => g.selected);
-    if (bg) garage.style.backgroundImage = `url(${bg.image})`;
+    try { stopMusic?.(switchsound); } catch {}
+    clearTimeout(soundtime);
+
+    if (!garageBackgrounds.length || !garage) return;
+
+    currentBgIndex = (currentBgIndex + 1) % garageBackgrounds.length;
+    garageBackgrounds.forEach((g, i) => g.selected = (i === currentBgIndex));
+    const bg = garageBackgrounds[currentBgIndex];
+    garage.style.backgroundImage = `url(${bg.image})`;
     animateCarIn();
 }
 
 function selectCar(id) {
     const v = [...garageVechicles];
 
+    let selected = null;
     v.forEach((car) => {
         if (car.id === id) {
             car.selected = true;
-            selecttxt.textContent = 'Selected';
-            Selectbtn.classList.add('selected');
-            selectedCar = car
+            selected = car;
         } else {
             car.selected = false;
-
         }
     });
+
+    if (selected) {
+        selectedCar = selected;
+        if (selecttxt) selecttxt.textContent = 'Selected';
+        Selectbtn?.classList.add('selected');
+        updateCarInfo(selected);
+    }
 }
 
-// CORRECT: Pass a function reference, don't call it immediately
-Selectbtn.addEventListener('click', function () {
-    selectCar(Selectbtn.id);
-});
-
-
-changeCar.addEventListener('click', changeSelection);
-garagesw.addEventListener('click', selectGarage)
+function getSelectedName() {
+    return selectedCar ? selectedCar.name.toUpperCase() : 'HYPER GT';
+}
+function getSelectedAccel() {
+    return selectedCar ? selectedCar.acceleration : '4m/s²';   
+}
+function getSelectedHandling() {
+    return selectedCar ? selectedCar.handling : 'regular';   
+}
 // Export public API for controlling views
 export {
     garageInit,
@@ -1035,5 +1019,8 @@ export {
     selectGarage,
     setCameraView,  // Allow external control of camera views
     VIEW_PRESETS,
-    selectedCar    // Export view presets for external use
+    selectedCar,
+    getSelectedName,
+    getSelectedAccel,
+    getSelectedHandling    // Export view presets for external use
 };

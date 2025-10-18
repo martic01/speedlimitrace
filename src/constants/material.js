@@ -11,6 +11,11 @@ import roadBomb1 from "../../assets/images/tickbomb.png"
 import roadBomb2 from "../../assets/images/ballbomb.png"
 import explodeEffect from "../../assets/images/explosion.webp"
 import road1 from "../../assets/images/roads/road1.jpg"
+import road2 from "../../assets/images/roads/road3.jpg"
+import road3 from "../../assets/images/roads/road4.jpg"
+import road4 from "../../assets/images/explosion.webp"
+import road5 from "../../assets/images/animated-fire.gif"
+import road6 from "../../assets/images/weather-night.webp"
 import driftWin from "../../assets/images/drift-win.webp"
 import driftLose from "../../assets/images/drift-lose.webp"
 import finish from "../../assets/images/finished.png"
@@ -101,6 +106,11 @@ const obstacles = {
 }
 const tracks = {
     road1,
+    road2,
+    road3,
+    road4,
+    road5,
+    road6,
     driftWin,
     driftLose,
     finish,

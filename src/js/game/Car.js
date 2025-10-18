@@ -2,12 +2,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { vechicles3D } from '../../constants/material';
 import { selectedCar } from '../garage';
-
+import { setMeters } from './speedo';
 export class Car {
     constructor(scene, game = null, carData = null) {
         this.scene = scene;
         this.game = game;
-        
+
         // Car configuration with better defaults
         this.carData = selectedCar || {
             name: 'Default Car',
@@ -15,14 +15,16 @@ export class Car {
             carPosition: { x: 0, y: 0.3, z: -6 },
             carScaleConfig: { defaultScale: 3.7 },
             driveInStartZ: 6,
-            
+
             // Car properties that come from the car itself
             maxSpeed: 0.13,
-            accel: 0.0006,
-            decel: 0.0001,
-            brakeDecel: 0.0002,
+            accel: 0.02,
+            decel: 0.01,
+            brakeDecel: 0.03,
+            minorTK: 1,
+            majorTK: 10,
             laneChangeSpeed: 0.1,
-            
+
             // Protective system properties
             protectionDistance: 300, // meters of protection
             hasProtection: false,
@@ -81,16 +83,16 @@ export class Car {
     // PROTECTIVE SYSTEM METHODS
     activateProtection(distance = null) {
         const protectionDistance = distance || this.carData.protectionDistance;
-        
+
         this.carData.hasProtection = true;
         this.carData.protectionActive = true;
         this.carData.protectionRemaining = protectionDistance;
-        
+
         console.log(`🛡️ Protection activated! ${protectionDistance}m of immunity`);
-        
+
         // Create visual shield effect
         this.createProtectionShield();
-        
+
         // Start protection particles
         this.startProtectionParticles();
     }
@@ -99,9 +101,9 @@ export class Car {
         this.carData.hasProtection = false;
         this.carData.protectionActive = false;
         this.carData.protectionRemaining = 0;
-        
+
         console.log("🛡️ Protection deactivated");
-        
+
         // Remove visual effects
         this.removeProtectionEffects();
     }
@@ -109,7 +111,7 @@ export class Car {
     updateProtection(distanceTraveled) {
         if (this.carData.protectionActive && this.carData.protectionRemaining > 0) {
             this.carData.protectionRemaining -= distanceTraveled;
-            
+
             if (this.carData.protectionRemaining <= 0) {
                 this.deactivateProtection();
             } else {
@@ -159,7 +161,7 @@ export class Car {
             });
 
             const particle = new THREE.Mesh(particleGeometry, particleMaterial);
-            
+
             // Position particles in a sphere around the car
             const angle = (i / 12) * Math.PI * 2;
             const radius = 1.5 + Math.random() * 0.5;
@@ -168,10 +170,10 @@ export class Car {
                 Math.sin(angle) * radius * 0.5,
                 Math.sin(angle) * radius
             );
-            
+
             particle.userData.originalAngle = angle;
             particle.userData.speed = 2 + Math.random() * 2;
-            
+
             this.protectionShield.add(particle);
             this.protectionParticles.push(particle);
         }
@@ -181,11 +183,11 @@ export class Car {
         if (!this.protectionShield) return;
 
         const intensity = this.carData.protectionRemaining / this.carData.protectionDistance;
-        
+
         // Pulsing effect based on remaining protection
         const pulse = Math.sin(Date.now() * 0.01) * 0.2 + 0.8;
         this.protectionShield.material.opacity = 0.2 * intensity * pulse;
-        
+
         // Change color when protection is low (red when almost gone)
         if (intensity < 0.3) {
             this.protectionShield.material.color.setHex(0xff4444);
@@ -199,19 +201,19 @@ export class Car {
 
     updateProtectionParticles() {
         const currentTime = Date.now();
-        
+
         this.protectionParticles.forEach((particle, index) => {
             if (!particle.parent) return;
-            
+
             const angle = particle.userData.originalAngle + (currentTime * 0.001 * particle.userData.speed);
             const radius = 1.5 + Math.random() * 0.5;
-            
+
             particle.position.set(
                 Math.cos(angle) * radius,
                 Math.sin(angle) * radius * 0.5 + Math.sin(currentTime * 0.002 + index) * 0.3,
                 Math.sin(angle) * radius
             );
-            
+
             // Pulsing opacity
             particle.material.opacity = 0.5 + Math.sin(currentTime * 0.005 + index) * 0.3;
         });
@@ -223,7 +225,7 @@ export class Car {
             this.scene.remove(this.protectionShield);
             this.protectionShield = null;
         }
-        
+
         // Remove particles
         this.protectionParticles.forEach(particle => {
             if (particle.parent) {
@@ -244,33 +246,39 @@ export class Car {
     }
 
     getAcceleration() {
-        return this.carData.accel || 0.002;
+        return this.carData.accel || 0.02;
     }
 
     getDeceleration() {
-        return this.carData.decel || 0.001;
+        return this.carData.decel || 0.01;
     }
 
     getBrakeDeceleration() {
-        return this.carData.brakeDecel || 0.003;
+        return this.carData.brakeDecel || 0.03;
     }
 
+    getMinorTk() {
+        return this.carData.minorTK || 1;
+    }
+    getMajorTk() {
+        return this.carData.majorTK || 10;
+    }
     // Method to handle collision with protection
     handleCollision(obstacleType) {
         if (this.isProtected()) {
             console.log(`🛡️ Protected from ${obstacleType} collision!`);
-            
+
             // Visual feedback for protected collision
             this.showProtectionHitEffect();
-            
+
             // Small speed penalty even when protected
             if (this.game && this.game.speed !== undefined) {
                 this.game.speed = Math.max(0, this.game.speed * 0.95);
             }
-            
+
             return false; // Collision was protected
         }
-        
+
         return true; // Collision should proceed normally
     }
 
@@ -282,17 +290,17 @@ export class Car {
             transparent: true,
             opacity: 0.8
         });
-        
+
         const flash = new THREE.Mesh(flashGeometry, flashMaterial);
         flash.position.copy(this.mesh.position);
         this.scene.add(flash);
-        
+
         // Animate flash
         const startTime = Date.now();
         const animateFlash = () => {
             const elapsed = Date.now() - startTime;
             const progress = elapsed / 500; // 0.5 second animation
-            
+
             if (progress < 1) {
                 flash.scale.set(1 + progress * 2, 1 + progress * 2, 1 + progress * 2);
                 flash.material.opacity = 0.8 * (1 - progress);
@@ -301,7 +309,7 @@ export class Car {
                 this.scene.remove(flash);
             }
         };
-        
+
         animateFlash();
     }
 
@@ -374,7 +382,7 @@ export class Car {
                 // Apply model position
                 const position = this.carData.modelPosition || { x: 0, y: 0.3, z: -6 };
                 this.mesh.position.set(position.x, position.y, position.z + this.positionOffsetZ);
-                console.log('📍 Model position set to:', this.mesh.position);
+                // console.log('📍 Model position set to:', this.mesh.position);
 
                 // Scale model properly
                 this.applyProperScaling();
@@ -384,6 +392,8 @@ export class Car {
 
                 // Store original colors BEFORE optimizing
                 this.storeOriginalColors(this.mesh);
+
+
 
                 // Optimize materials for WebGL 1
                 this.optimizeMaterials(this.mesh);
@@ -401,7 +411,7 @@ export class Car {
                 } else {
                     percentLoaded = Math.min((progress.loaded / 1000000) * 100, 99);
                 }
-                console.log(`📦 Loading ${this.carData.name}: ${percentLoaded.toFixed(1)}%`);
+                // console.log(`📦 Loading ${this.carData.name}: ${percentLoaded.toFixed(1)}%`);
             },
             (error) => {
                 console.error('❌ Error loading 3D car model:', error);
@@ -421,7 +431,7 @@ export class Car {
         const size = new THREE.Vector3();
         box.getSize(size);
 
-        console.log('📏 Model size:', size);
+        // console.log('📏 Model size:', size);
 
         if (size.length() === 0) {
             console.warn('⚠️ Model has zero size, using default scale');
@@ -430,7 +440,7 @@ export class Car {
             const maxDim = Math.max(size.x, size.y, size.z);
             const scale = defaultScale / maxDim;
             this.mesh.scale.set(scale, scale, scale);
-            console.log('📐 Model scaled to:', this.mesh.scale);
+            // console.log('📐 Model scaled to:', this.mesh.scale);
         }
     }
 
@@ -458,7 +468,7 @@ export class Car {
                 this.originalColors.set(child, colors);
             }
         });
-        console.log("🎨 Original car colors stored");
+        // console.log("🎨 Original car colors stored");
     }
 
     optimizeMaterials(object) {
@@ -713,7 +723,7 @@ export class Car {
             this.driveInComplete = false;
             this.restoreToOriginal();
         }
-        
+
         // Reset protection system
         this.deactivateProtection();
     }
@@ -742,36 +752,36 @@ export class Car {
             this.disposeMesh(this.mesh);
             this.scene.remove(this.mesh);
         }
-        
+
         // Clean up protection effects
         this.removeProtectionEffects();
     }
 
     // Debug method to check model status
-    debugModel() {
-        if (!this.mesh) {
-            console.log('❌ No mesh loaded');
-            return;
-        }
+    // debugModel() {
+    //     if (!this.mesh) {
+    //         console.log('❌ No mesh loaded');
+    //         return;
+    //     }
 
-        console.log('🔍 Car Model Debug:');
-        console.log('- Name:', this.carData.name);
-        console.log('- Position:', this.mesh.position);
-        console.log('- Scale:', this.mesh.scale);
-        console.log('- Rotation:', this.mesh.rotation);
-        console.log('- Animation State:', this.animationState);
-        console.log('- Drive In Complete:', this.driveInComplete);
-        console.log('- Protection Active:', this.carData.protectionActive);
-        console.log('- Protection Remaining:', this.carData.protectionRemaining + 'm');
-        console.log('- Visible:', this.mesh.visible);
+    //     console.log('🔍 Car Model Debug:');
+    //     console.log('- Name:', this.carData.name);
+    //     console.log('- Position:', this.mesh.position);
+    //     console.log('- Scale:', this.mesh.scale);
+    //     console.log('- Rotation:', this.mesh.rotation);
+    //     console.log('- Animation State:', this.animationState);
+    //     console.log('- Drive In Complete:', this.driveInComplete);
+    //     console.log('- Protection Active:', this.carData.protectionActive);
+    //     console.log('- Protection Remaining:', this.carData.protectionRemaining + 'm');
+    //     console.log('- Visible:', this.mesh.visible);
 
-        let meshCount = 0;
-        this.mesh.traverse((child) => {
-            if (child.isMesh) meshCount++;
-        });
+    //     let meshCount = 0;
+    //     this.mesh.traverse((child) => {
+    //         if (child.isMesh) meshCount++;
+    //     });
 
-        console.log(`📊 Total meshes: ${meshCount}`);
-    }
+    //     console.log(`📊 Total meshes: ${meshCount}`);
+    // }
 }
 
 export default Car;

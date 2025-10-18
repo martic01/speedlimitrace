@@ -5,11 +5,25 @@
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
+
+:root {
+    --bg: #0f1220;
+    --card: #14182a;
+    --ring: #1f2540;
+    --accent: #6aa2ff;
+    --text: #eaf0ff;
+    --text-dim: #9aa3ba;
+    --green: #22c55e;
+    --orange: #f59e0b;
+    --red: #ef4444;
+}
+
+
 body {
     user-select: none;
     overflow: hidden;
     background-color: black;
-    
+
 }
 
 .flex {
@@ -689,7 +703,7 @@ body {
     color: rgb(0, 0, 0);
     border: 4px solid rgb(88, 88, 88);
     border-left: 12px solid rgb(90, 90, 90);
-   
+
 }
 
 .buttons button:hover {
@@ -749,7 +763,7 @@ body {
     position: relative;
 }
 
-.we{
+.we {
     position: absolute;
     top: 0;
     width: 100%;
@@ -758,7 +772,7 @@ body {
     background: url(../../assets/images/weather-light2.webp);
     background-size: cover;
     background-position: bottom;
-   opacity: 0.2;
+    opacity: 0.2;
 }
 
 #countdown-display {
@@ -795,9 +809,7 @@ body {
     background-repeat: no-repeat;
 }
 
-.rock.rg1 {
-    
-}
+.rock.rg1 {}
 
 
 
@@ -843,10 +855,181 @@ body {
 
 }
 
+.display {
+    position: absolute;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: transparent;
+    z-index: 9999;
+    justify-content: space-between;
+}
+
+.topreadings {
+    width: 100%;
+    height: 10%;
+    background-color: #00000046;
+}
+
+.meter {
+    width: 27%;
+    background: #ffffff21;
+    backdrop-filter: blur(7px);
+    transform: translateX(133%) translateY(-27%);
+    justify-content: space-between;
+}
+
+.com {
+    width: 370px;
+    margin-top: 2px;
+}
+
+.detail {
+    height: 4rem;
+    background: rgba(255, 255, 255, 0.308);
+
+    border: 0.4rem solid;
+    animation: boderAnim 10s linear infinite;
+}
+
+.headering {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.car-infosn {
+    padding: 3px;
+}
+
+.car-infosn h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    padding: 3px;
+    color: #fcfcfc;
+}
+
+.status-icons {
+    display: flex;
+    gap: 10px;
+    padding: 4px;
+    font-size: 0.9rem;
+}
+
+.status-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    font-weight: 800;
+}
+
+
+
+
+.speedo {
+    height: 300px;
+    background: rgba(3, 3, 3, 0.616);
+    display: grid;
+    place-items: center;
+    color: var(--text);
+    border: 0.7rem solid;
+    animation: boderAnim 10s linear infinite;
+    animation-delay: 1s;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+
+.gauge {
+    width: 100%;
+    height: 100%;
+ 
+}
+
+canvas {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.35));
+    /* box-shadow:
+        0 30px 60px rgba(0,0,0,0.55),
+        inset 0 1px 0 rgba(255,255,255,0.04),
+        inset 0 -1px 0 rgba(0,0,0,0.4); */
+        
+
+}
+
+.readout {
+    position: absolute;
+    inset: auto 0 24px 0;
+    display: grid;
+    place-items: center;
+    gap: 6px;
+    pointer-events: none;
+}
+
+.value {
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+    font-size: 42px;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.units {
+    color: var(--text-dim);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.ms {
+    height: 128px;
+    width: 370px;
+}
+
+.missionbox {
+    height: 100%;
+    background: #0000006c;
+    justify-content: space-between;
+     border: 0.4rem solid;
+    animation: boderAnim 10s linear infinite;
+}
+
+.mission {
+    height: 100%;
+    width: 35%;
+    background-color: #00000057;
+    box-shadow: 0 0 20px white;
+}
+
+.mission .label {
+    width: 100%;
+    height: 24%;
+    font-size: 20px;
+    background-color: #0000003d;
+    color: white;
+    padding: 7px;
+}
+
+.mission .setsp {
+    width: 100%;
+    height: 78%;
+    font-weight: 800;
+    font-size: 42px;
+    color: red;
+    text-shadow: 0 0 20px rgba(251, 253, 253, 0.788);
+    background-color: rgba(255, 255, 255, 0.116);
+}
+
+.mission p {
+    color: aqua;
+}
+
 .screen {
     display: none;
 }
 
-.welcomepg {
+.gamepg {
     display: block;
 }

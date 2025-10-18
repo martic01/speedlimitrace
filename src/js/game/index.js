@@ -1,5 +1,6 @@
 
 import startGame from './game.js';
+import { reset } from './speedo.js';
 import { Curves } from './Curves.js';
 import { TumbleSystem } from './TumbleSystem.js';
 
@@ -38,6 +39,7 @@ function addCurve(start, end, intensity) {
 function resetGame() {
     if (game) {
         game.reset();
+        reset()
     }
 }
 // Function to set race distance

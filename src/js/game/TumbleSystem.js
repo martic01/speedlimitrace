@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { obstacles } from '../../constants/material.js';
 
+
 export class TumbleSystem {
     constructor(car, camera) {
         this.car = car;

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { obstacles } from '../../constants/material.js';
-import { crash,explode } from '../sounds.js';
+import { crash,explode, stopAll } from '../sounds.js';
 
 
 export class Obstacles {
@@ -95,7 +95,7 @@ export class Obstacles {
         this.scene.add(outlineMesh);
         this.activeObstacle = mesh;
         
-        console.log(`🆕 Spawned ${type} obstacle at lane ${lane}`);
+        // console.log(`🆕 Spawned ${type} obstacle at lane ${lane}`);
     }
 
     update(distanceThisFrame, totalDistance, raceDistance) {
@@ -139,7 +139,7 @@ export class Obstacles {
 
             // Remove if passed
             if (this.activeObstacle.position.z > this.car.mesh.position.z + 5) {
-                console.log(`🗑️ Removed ${this.activeObstacle.userData.type} obstacle`);
+                // console.log(`🗑️ Removed ${this.activeObstacle.userData.type} obstacle`);
                 this.removeObstacle();
             }
         }
@@ -152,11 +152,11 @@ export class Obstacles {
         const obsBox = new THREE.Box3().setFromObject(this.activeObstacle);
 
         if (carBox.intersectsBox(obsBox)) {
-            console.log(`💥 Collision with ${this.activeObstacle.userData.type}!`);
+            // console.log(`💥 Collision with ${this.activeObstacle.userData.type}!`);
             
             // CHECK PROTECTION FIRST
             if (car.isProtected && car.isProtected()) {
-                console.log("🛡️ Collision blocked by protection!");
+                // console.log("🛡️ Collision blocked by protection!");
                 car.handleCollision(this.activeObstacle.userData.type);
                 this.removeObstacle();
                 return;
@@ -165,8 +165,10 @@ export class Obstacles {
             // Normal collision handling if not protected
             if (this.activeObstacle.userData.type === this.OBSTACLE_TYPES.ROCK || 
                 this.activeObstacle.userData.type === this.OBSTACLE_TYPES.DROP_ROCK) {
+                    stopAll()
                 this.handleRockCollision();
             } else if (this.activeObstacle.userData.type === this.OBSTACLE_TYPES.BOMB) {
+                stopAll()
                 this.handleBombCollision(tumbleSystem);
             }
 
@@ -175,8 +177,8 @@ export class Obstacles {
     }
 
     handleRockCollision() {
-        console.log("💥 Hit rock! Bouncing back...");
-        
+        // console.log("💥 Hit rock! Bouncing back...");
+        stopAll()
         // Calculate bounce force based on current speed
         const bounceForce = this.game.speed * 0.8;
         
@@ -194,12 +196,12 @@ export class Obstacles {
         // Camera shake effect
         this.shakeCamera(600);
         
-        console.log(`Bounce force: ${bounceForce.toFixed(3)}, New speed: ${this.game.speed.toFixed(3)}`);
+        // console.log(`Bounce force: ${bounceForce.toFixed(3)}, New speed: ${this.game.speed.toFixed(3)}`);
     }
 
     handleBombCollision(tumbleSystem) {
-        console.log("💣 Bomb hit! Explosive flying animation!");
-        
+        // console.log("💣 Bomb hit! Explosive flying animation!");
+        stopAll()
         // Set explosive flying state
         this.game.isExploding = true;
         this.game.explosionStartTime = Date.now();
@@ -331,7 +333,7 @@ export class Obstacles {
     }
 
     startFlyingAnimation() {
-        console.log("🚀 Starting flying animation");
+        // console.log("🚀 Starting flying animation");
         
         // Check if car and mesh exist
         if (!this.car || !this.car.mesh) {
@@ -454,7 +456,7 @@ export class Obstacles {
     }
 
     endExplosion(tumbleSystem) {
-        console.log("💥 Explosion finished! Resetting car...");
+        // console.log("💥 Explosion finished! Resetting car...");
         
         // Clean up explosion effects
         if (this.game.explosionEffects) {
