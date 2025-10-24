@@ -1,8 +1,4 @@
-
 import chopper from "../../assets/images/chopper.png"
-import weatherDay from "../../assets/images/weather-day.webp"
-import weatherNight from "../../assets/images/weather-night.webp"
-import fire from "../../assets/images/animated-fire.gif"
 import rocks from "../../assets/images/stop-rock.png"
 import dropRocks from "../../assets/images/fall-rock.png"
 import missile1 from "../../assets/images/missilest.png"
@@ -10,12 +6,26 @@ import missile2 from "../../assets/images/missiles2.png"
 import roadBomb1 from "../../assets/images/tickbomb.png"
 import roadBomb2 from "../../assets/images/ballbomb.png"
 import explodeEffect from "../../assets/images/explosion.webp"
+import weatherDay from "../../assets/images/weather/weather-day.webp"
+import weatherNight from "../../assets/images/weather/weather-night.webp"
+import weatherWind from "../../assets/images/weather/weather-wind.webp"
+import weatherBright from "../../assets/images/weather/weather-bright.gif"
+import weatherLigth from "../../assets/images/weather/weather-light.webp"
+import weatherLigth2 from "../../assets/images/weather/weather-light2.webp"
+import weatherLigth3 from "../../assets/images/weather/weather-light3.webp"
+import weatherLigth4 from "../../assets/images/weather/weather-light4.webp"
+import enviroment1 from "../../assets/images/enviroment/envirod1.jpg"
+import enviroment2 from "../../assets/images/enviroment/envirod2.jpg"
+import enviroment3 from "../../assets/images/enviroment/envirod3.jpg"
+import enviroment4 from "../../assets/images/enviroment/envirod4.jpg"
+import enviroment5 from "../../assets/images/enviroment/envirod5.jpg"
+import enviroment6 from "../../assets/images/enviroment/envirod6.jpg"
 import road1 from "../../assets/images/roads/road1.jpg"
 import road2 from "../../assets/images/roads/road3.jpg"
 import road3 from "../../assets/images/roads/road4.jpg"
 import road4 from "../../assets/images/explosion.webp"
 import road5 from "../../assets/images/animated-fire.gif"
-import road6 from "../../assets/images/weather-night.webp"
+import road6 from "../../assets/images/weather/weather-night.webp"
 import driftWin from "../../assets/images/drift-win.webp"
 import driftLose from "../../assets/images/drift-lose.webp"
 import finish from "../../assets/images/finished.png"
@@ -24,22 +34,7 @@ import garage1 from "../../assets/images/garage.jpg"
 import garage2 from "../../assets/images/dgarage.png"
 
 // 3D
-
-import whiteFrontView from "../../assets/images/model3D/frontvieww.png"
-import whiteBackView from "../../assets/images/model3D/backvieww.png"
-import whiteSideView from "../../assets/images/model3D/sideviewlw.png"
-import whiteTopView from "../../assets/images/model3D/topvieww.png"
-
-import blackFrontView from "../../assets/images/model3D/frontviewb.png"
-import blackBackView from "../../assets/images/model3D/backviewb.png"
-import blackSideView from "../../assets/images/model3D/sideviewlb.png"
-import blackTopView from "../../assets/images/model3D/topviewb.png"
-
 import redFrontView from "../../assets/images/model3D/frontviewr.png"
-import redBackView from "../../assets/images/model3D/backviewr.png"
-import redSideView from "../../assets/images/model3D/sideviewlr.png"
-import redTopView from "../../assets/images/model3D/topviewr.png"
-
 // sounds
 
 import accelerate1Sound from "../../assets/audio/start1.mp3"
@@ -61,7 +56,7 @@ import gameSound2 from "../../assets/audio/gamesound2.mp3"
 import car3d1 from "../../assets/models/dodge.glb"
 import car3d2 from "../../assets/models/dodge2.glb"
 import car3d3 from "../../assets/models/car3d8.glb"
-import car3d4 from  "../../assets/models/car3d10.glb" 
+import car3d4 from "../../assets/models/car3d10.glb"
 import car3d5 from "../../assets/models/car3d11.glb"
 import car3d6 from "../../assets/models/car3d6.glb"
 import car3d7 from "../../assets/models/car3d7.glb"
@@ -89,11 +84,27 @@ const vechicles = {
     chopper,
     redFrontView
 }
+
+const enviromental = {
+    enviroment1,
+    enviroment2,
+    enviroment3,
+    enviroment4,
+    enviroment5,
+    enviroment6
+}
+
 const weathers = {
     weatherDay,
     weatherNight,
-    fire
+    weatherWind,
+    weatherBright,
+    weatherLigth,
+    weatherLigth2,
+    weatherLigth3,
+    weatherLigth4,
 }
+
 const obstacles = {
     rocks,
     dropRocks,
@@ -104,6 +115,7 @@ const obstacles = {
     carBomb,
     explodeEffect
 }
+
 const tracks = {
     road1,
     road2,
@@ -111,31 +123,21 @@ const tracks = {
     road4,
     road5,
     road6,
-    driftWin,
-    driftLose,
-    finish,
 }
 
 const model3D = {
-    whiteFrontView,
-    whiteBackView,
-    whiteSideView,
-    whiteTopView,
-
-    blackFrontView,
-    blackBackView,
-    blackSideView,
-    blackTopView,
-
     redFrontView,
-    redBackView,
-    redSideView,
-    redTopView,
 }
 
 const garages = {
     garage1,
     garage2
+}
+
+const final = {
+    driftWin,
+    driftLose,
+    finish,
 }
 // sounds
 
@@ -156,4 +158,15 @@ const sounds = {
 }
 
 
-export { vechicles,vechicles3D, weathers, obstacles, tracks, model3D, sounds, garages }
+export {
+    vechicles,
+    vechicles3D,
+    weathers,
+    enviromental,
+    final,
+    obstacles,
+    tracks,
+    model3D,
+    sounds,
+    garages
+}

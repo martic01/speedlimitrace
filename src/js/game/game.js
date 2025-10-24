@@ -263,14 +263,14 @@ export class startGame {
         this.obstacles = new Obstacles(this.scene, this.car, this);
         this.curves = new Curves();
         this.tumbleSystem = new TumbleSystem(this.car, this.camera);
-        speedo()
+
         // FIXED: Add parentheses to method calls
         this.maxSpeed = this.car.getMaxSpeed ? this.car.getMaxSpeed() : 0.2;
         this.accel = this.car.getAcceleration ? this.car.getAcceleration() : 0.02;
         this.decel = this.car.getDeceleration ? this.car.getDeceleration() : 0.01;
         this.brakeDecel = this.car.getBrakeDeceleration ? this.car.getBrakeDeceleration() : 0.03;
 
-
+        speedo()
         console.log("🚗 Car properties loaded:", {
             maxSpeed: this.maxSpeed,
             accel: this.accel,
@@ -684,10 +684,10 @@ export class startGame {
         // KEEP UPDATING ROAD EVEN AFTER FINISH LINE
         if (this.raceFinished) {
             // Smooth deceleration
-           
+
             this.speed = Math.max(0, this.speed - this.brakeDecel * 1.5);
             this.controls.currentLane = 1;
-             
+
             // Continue road movement until car completely stops
             if (this.speed > 0.01) {
                 const distanceThisFrame = this.speed * 5;
@@ -729,7 +729,13 @@ export class startGame {
         this.obstacles.reset();
         this.curves.reset();
         this.car.reset();
-
+        setMeters(
+            0,
+            0,
+            0,
+            0,
+            0
+        )
         // Reset camera position
         this.camera.position.set(0, 2, 5);
 

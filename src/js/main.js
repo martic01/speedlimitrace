@@ -82,9 +82,9 @@ mutebtn.addEventListener('click', stopSound);
 
 // Initialize
 stopAll()
-preLoadGarage();
+// preLoadGarage();
 garageInit()
-setRaceDistance(1.0)
-startNewGame();
+// setRaceDistance(1.0)
+// startNewGame();
 
 

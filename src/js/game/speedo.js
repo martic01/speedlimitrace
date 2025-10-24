@@ -36,8 +36,14 @@ const speedo = () => {
   function resizeCanvas() {
     const dpr = Math.max(1, window.devicePixelRatio || 1);
     const rect = canvas.getBoundingClientRect();
-    canvas.width = Math.round(rect.width * dpr);
-    canvas.height = Math.round(rect.height * dpr);
+    
+    // Ensure minimum dimensions
+    const width = Math.max(1, Math.round(rect.width * dpr));
+    const height = Math.max(1, Math.round(rect.height * dpr));
+    
+    canvas.width = width;
+    canvas.height = height;
+    
     // Draw in CSS pixels
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     drawStatic();
@@ -51,6 +57,12 @@ const speedo = () => {
 
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
+    
+    // Skip if canvas has zero dimensions
+    if (w === 0 || h === 0) {
+      return;
+    }
+    
     staticCanvas.width = w;
     staticCanvas.height = h;
 
@@ -59,6 +71,11 @@ const speedo = () => {
 
     const rOuter = Math.min(w, h) * 0.42;
     const ringWidth = 18;
+
+    // Ensure positive dimensions for gradients
+    if (rOuter <= 0) {
+      return;
+    }
 
     sctx.clearRect(0, 0, w, h);
 
@@ -123,15 +140,19 @@ const speedo = () => {
       }
     }
 
-    // Inner face glow
-    const faceR = rOuter - ringWidth - 28;
-    const g = sctx.createRadialGradient(cx, cy, faceR * 0.2, cx, cy, faceR);
-    g.addColorStop(0, 'rgba(106,162,255,0.06)');
-    g.addColorStop(1, 'rgba(106,162,255,0.02)');
-    sctx.fillStyle = g;
-    sctx.beginPath();
-    sctx.arc(cx, cy, faceR, 0, Math.PI * 2);
-    sctx.fill();
+    // Inner face glow - FIXED: Ensure faceR is positive
+    const faceR = Math.max(1, rOuter - ringWidth - 28);
+    
+    // Only create gradient if dimensions are valid
+    if (faceR > 0) {
+      const g = sctx.createRadialGradient(cx, cy, faceR * 0.2, cx, cy, faceR);
+      g.addColorStop(0, 'rgba(106,162,255,0.06)');
+      g.addColorStop(1, 'rgba(106,162,255,0.02)');
+      sctx.fillStyle = g;
+      sctx.beginPath();
+      sctx.arc(cx, cy, faceR, 0, Math.PI * 2);
+      sctx.fill();
+    }
 
     // Center cap base
     sctx.fillStyle = '#0e1328';
@@ -143,16 +164,23 @@ const speedo = () => {
   }
 
   // Dynamic layer
-  let speed = 60;
+  let speed = 0;
   let isHolding = false;
   let lastTime = performance.now();
 
   function drawDynamic() {
-    if (!geom) return;
+    if (!geom || !staticCanvas || staticCanvas.width === 0 || staticCanvas.height === 0) {
+      return;
+    }
+    
     const { w, h, cx, cy, rOuter, ringWidth } = geom;
 
     ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(staticCanvas, 0, 0);
+    
+    // Only draw if static canvas is ready
+    if (staticCanvas.width > 0 && staticCanvas.height > 0) {
+      ctx.drawImage(staticCanvas, 0, 0);
+    }
 
     // Progress arc
     const angleNow = valueToAngle(speed);
@@ -220,8 +248,10 @@ const speedo = () => {
   // Track last config to avoid rebuilding when unchanged
   let lastCfg = { ms: null, ar: null, dr: null, mt: null, me: null };
 
- const setInfo = () => {
-    nowCarName.textContent = getSelectedName();
+  const setInfo = () => {
+    const shortenName = getSelectedName().slice(0, 4) + '...' + getSelectedName().slice(-2);
+    const condition = getSelectedName().length > 12;
+    nowCarName.textContent = !condition ? getSelectedName() : shortenName;
     nowCarAcc.textContent = getSelectedAccel();
     nowCarHan.textContent = getSelectedHandling();
   }
@@ -235,7 +265,6 @@ const speedo = () => {
     speed = clamp((normalized || 0) * 1000, 0, MAX_SPEED);
     drawDynamic();
     setInfo();
-
   };
 
   // Update gauge config; rebuild static if anything changed.
@@ -261,10 +290,13 @@ const speedo = () => {
     MAJOR_EVERY = newME;
     lastCfg = { ms: newMAX, ar: newAR, dr: newDR, mt: newMT, me: newME };
 
-    drawStatic();
-    // Clamp current speed to new max and redraw
-    speed = clamp(speed, 0, MAX_SPEED);
-    drawDynamic();
+    // Only redraw if canvas is ready
+    if (canvas.clientWidth > 0 && canvas.clientHeight > 0) {
+      drawStatic();
+      // Clamp current speed to new max and redraw
+      speed = clamp(speed, 0, MAX_SPEED);
+      drawDynamic();
+    }
   };
 
   reset = () => {
@@ -274,16 +306,29 @@ const speedo = () => {
   };
 
   // Resize-aware
-  const ro = new ResizeObserver(() => resizeCanvas());
+  const ro = new ResizeObserver(() => {
+    if (canvas.clientWidth > 0 && canvas.clientHeight > 0) {
+      resizeCanvas();
+    }
+  });
   ro.observe(canvas);
 
-  // Kick off
-  resizeCanvas();
-  drawDynamic();
-  requestAnimationFrame((t) => {
-    lastTime = t;
-    tick(t);
-  });
+  // Initial setup - wait for canvas to be visible
+  const init = () => {
+    if (canvas.clientWidth > 0 && canvas.clientHeight > 0) {
+      resizeCanvas();
+      drawDynamic();
+      requestAnimationFrame((t) => {
+        lastTime = t;
+        tick(t);
+      });
+    } else {
+      // Retry after a short delay if canvas isn't ready
+      setTimeout(init, 100);
+    }
+  };
+
+  init();
 };
 
 export { speedo, setHolding, setMeters, updateSpeed, reset };
