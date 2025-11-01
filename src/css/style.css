@@ -635,7 +635,7 @@ body {
     word-spacing: 4px;
 }
 
-#info p{
+#info p {
     font-size: 40px;
     font-weight: 800;
 }
@@ -686,13 +686,14 @@ body {
     background: rgba(255, 255, 255, 0.24) url(../../assets/images/carX3.gif);
 }
 
- .carinfo .change#differ {
-    background-image:url(../../assets/images/bg-display1.jpg);
+.carinfo .change#differ {
+    background-image: url(../../assets/images/bg-display1.jpg);
     justify-content: space-between;
     padding: 0;
     border-radius: 0;
 }
-.same{
+
+.same {
     transition: .3s;
     height: 49%;
     width: 100%;
@@ -700,16 +701,18 @@ body {
     background: #00000056;
     padding: 4px;
 }
-.carinfo #differ:hover{
+
+.carinfo #differ:hover {
     color: white;
 }
 
-#differ .same:hover{
+#differ .same:hover {
     background: transparent;
     backdrop-filter: blur(10px);
     border: 2px solid rgb(87, 237, 248);
     color: #00f7ff;
 }
+
 .carinfo button.selectbtn {
     transition: .3s;
     width: 94%;
@@ -730,9 +733,10 @@ body {
     color: rgb(81, 158, 158);
 }
 
-.carinfo .garagesw:hover p{
+.carinfo .garagesw:hover p {
     color: aqua;
 }
+
 .carinfo .selectbtn:hover {
     word-spacing: 20px;
     background: #ffffffa4;
@@ -789,7 +793,7 @@ body {
 }
 
 .sky {
-    background: url(../../assets/images/enviroment/envirod6.jpg);
+
     background-size: cover;
     background-position-y: 40%;
     background-color: rgb(56, 56, 56);
@@ -882,7 +886,7 @@ body {
 }
 
 .carinfo .selectbtn.selected {
-    background: #86f6fa49 ;
+    background: #86f6fa49;
     backdrop-filter: blur(10px);
     background-size: contain;
     border: 6px solid rgb(110, 239, 243);
@@ -903,15 +907,212 @@ body {
 
 .topreadings {
     width: 100%;
-    height: 10%;
-    background-color: #00000046;
+    height: 17%;
+    justify-content: flex-start;
+}
+
+.topreadings .box {
+    width: 30%;
+    height: 100%;
+    color: white;
+    gap: 10px;
+}
+
+.topreadings .box .time {
+    width: 80%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+}
+
+
+.hud-timer {
+    margin-top: 10px;
+    position: relative;
+    width:90%;
+    height:100%;
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+    background-color: rgba(0, 0, 0, 0.829);
+    box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;
+}
+
+/* Side glows */
+.glow {
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 65%;
+    transform: translateY(-50%);
+    filter: blur(18px);
+    opacity: 0.9;
+    pointer-events: none;
+    background: radial-gradient(120% 70% at 0% 50%, rgba(42, 244, 233, 0.18), transparent 70%),
+        radial-gradient(100% 100% at 20% 50%, rgba(42, 244, 233, 0.12), transparent 70%);
+        
+}
+
+.glow-left {
+    left: 0;
+    border-radius: 100% 0 0 100% / 70% 0 0 70%;
+}
+
+.glow-right {
+    right: 0;
+    border-radius: 0 100% 100% 0 / 0 70% 70% 0;
+    transform: translateY(-50%) scaleX(-1);
+}
+
+/* Timer text container */
+.time {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    padding-inline: 16px;
+}
+
+/* Dot-matrix digits */
+.dots {
+    /* Size & spacing */
+    --cell: 10px;
+    /* dot pitch (grid spacing) */
+    --dot: 53%;
+    /* dot size inside a cell */
+    --color: #2af4e9;
+    /* main neon color */
+    --glow: 0 0 22px rgba(42, 244, 234, 0.685), 0 0 52px rgba(42, 244, 234, 0.548);
+
+    font-family: system-ui, ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    font-weight: 800;
+    font-size: clamp(70px, 10vw, 80px);
+    letter-spacing: 0.06em;
+    line-height: 1;
+
+    /* Create dotted fill inside text */
+    color: transparent;
+    background:
+        radial-gradient(circle at center, var(--color) var(--dot), transparent calc(var(--dot) + 0.5%)) 0 0 / var(--cell) var(--cell) repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    /* Outer glow */
+    filter: drop-shadow(var(--glow));
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0),
+        0 0 16px rgba(42, 244, 233, 0.25);
+
+    /* Subtle pulse */
+    animation: glow-pulse 2.8s ease-in-out infinite;
+}
+
+/* Tiny corner HUD bars */
+.hud-bar {
+    position: absolute;
+    bottom: 10%;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, rgba(42, 244, 233, 0.0), rgba(42, 244, 234, 0.856), rgba(42, 244, 233, 0.0));
+    filter: blur(0.3px) drop-shadow(0 0 8px rgba(42, 244, 234, 0.479));
+    opacity: 0.9;
+}
+
+.hud-bar-left {
+    left: 6%;
+}
+
+.hud-bar-right {
+    right: 6%;
+}
+
+/* Optional scanline sweep */
+.hud-timer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(60% 200% at 50% -80%, rgba(42, 244, 234, 0.555), transparent 65%);
+    animation: sweep 3.6s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Animations */
+@keyframes glow-pulse {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 16px rgba(42, 244, 233, 0.25)) drop-shadow(0 0 32px rgba(42, 244, 233, 0.15));
+        opacity: 0.98;
+    }
+
+    50% {
+        filter: drop-shadow(0 0 40px rgba(42, 244, 234, 0.774)) drop-shadow(0 0 56px rgba(42, 244, 234, 0.452));
+        opacity: 1;
+    }
+}
+
+@keyframes sweep {
+    0% {
+        opacity: 0;
+        transform: translateY(6px) scaleY(0.98);
+    }
+
+    15% {
+        opacity: 1;
+        transform: translateY(0) scaleY(1);
+    }
+
+    60% {
+        opacity: 0.6;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-6px) scaleY(1.02);
+    }
+}
+
+/* Optional: reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .dots {
+        animation: none;
+    }
+
+    .hud-timer::after {
+        animation: none;
+    }
+}
+
+.topreadings .box .ingmbk {
+    transition: .3s;
+    font-size: 14px;
+    width: 28%;
+    padding: 30px 4px;
+    background-color: transparent;
+    border: 3px solid white;
+    font-weight: bolder;
+    color: white;
+    border-radius: 100%;
+    gap: 10px;
+}
+
+.topreadings .box .ingmbk:hover{
+    background-color: #0303035d;
+    box-shadow: 0 0 30px rgba(255, 0, 0, 0.603);
+    cursor: pointer;
+}
+
+.ingmbk span {
+    color: red;
+    font-weight: 900;
 }
 
 .meter {
     width: 27%;
     background: #ffffff21;
     backdrop-filter: blur(7px);
-    transform: translateX(133%) translateY(-20%);
+    transform: translateX(133%) translateY(-17%);
     justify-content: space-between;
 }
 
@@ -921,8 +1122,8 @@ body {
 }
 
 .detail {
-    height: 4rem;
-    background: rgba(255, 255, 255, 0.308);
+    height: 3rem;
+    background: rgba(0, 0, 0, 0.308);
 
     border: 0.4rem solid;
     animation: boderAnim 10s linear infinite;
@@ -1066,6 +1267,6 @@ canvas {
     display: none;
 }
 
-.garagepg {
+.gamepg {
     display: block;
 }

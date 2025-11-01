@@ -1,159 +1,184 @@
+import startGame from './game.js';          // your startGame class (has destroy())
+import { reset as resetSpeedo } from './speedo.js';
 
-import startGame from './game.js';
-import { reset } from './speedo.js';
-import { Curves } from './Curves.js';
-import { TumbleSystem } from './TumbleSystem.js';
+// If you don't need these in here, you can remove them
+// import { Curves } from './Curves.js';
+// import { TumbleSystem } from './TumbleSystem.js';
+const x = (sel) => document.querySelector(sel);
+const x2 = (sel) => document.querySelectorAll(sel);
 
-let game = null; // Game instance
-let currentRaceDistance = 1.0; // Default race distance in km
 
-const screen = document.querySelectorAll('.screen');
-const gamepg = document.querySelector('.gamepg');
+let game = null;                 // current game instance
+let currentRaceDistance = 1.0;   // km
 
-// Race distance buttons (you'll need to add these to your HTML)
-const shortRaceBtn = document.getElementById('short-race-btn'); // Add this to HTML
-const mediumRaceBtn = document.getElementById('medium-race-btn'); // Add this to HTML
-const longRaceBtn = document.getElementById('long-race-btn'); // Add this to HTML
-const customRaceBtn = document.getElementById('custom-race-btn'); // Add this to HTML
+const screen = x2('.screen');
+const gamepg = x('.gamepg');
+const welcomepg = x('.welcomepg');
+
+// Optional race distance buttons (exist only if you add them in HTML)
+const shortRaceBtn = document.getElementById('short-race-btn');
+const mediumRaceBtn = document.getElementById('medium-race-btn');
+const longRaceBtn = document.getElementById('long-race-btn');
+const customRaceBtn = document.getElementById('custom-race-btn');
 
 const FINISH_LINE_TYPES = {
-    CLASSIC: 'classic',
-    MODERN: 'modern',
-    RACING: 'racing',
-    CHECKERED: 'checkered'
+  CLASSIC: 'classic',
+  MODERN: 'modern',
+  RACING: 'racing',
+  CHECKERED: 'checkered'
 };
-// Export individual functions for external use
+
+// Helpers
+
+
+
+function waitForGameScreen() {
+  screen.forEach(s => s && (s.style.display = 'none'));
+  if (welcomepg) welcomepg.style.display = 'block';
+}
+
+function hideAllScreens() {
+  screen.forEach(s => s && (s.style.display = 'none'));
+  if (gamepg) gamepg.style.display = 'block';
+}
+
+function showGameScreen() {
+  hideAllScreens() 
+}
+
+// Safely destroy a running game (used by resetGame and startNewGame)
+function safeDestroyGame() {
+  if (!game) return;
+  try {
+    // Prefer the destroy() we added to startGame (proper dispose + canvas removal)
+    if (typeof game.destroy === 'function') {
+      game.destroy();
+    } else {
+      // Fallback (older builds): best-effort cleanup
+      try { game.renderer?.renderLists?.dispose?.(); } catch { }
+      try { game.renderer?.dispose?.(); } catch { }
+      try { game.renderer?.forceContextLoss?.(); } catch { }
+      try {
+        const canvas = game.renderer?.domElement;
+        if (canvas?.parentNode) canvas.parentNode.removeChild(canvas);
+      } catch { }
+    }
+  } catch (e) {
+    console.warn('safeDestroyGame error:', e);
+  } finally {
+    game = null;
+  }
+}
+
+// Public helpers callable from other modules
 function setTumbleSettings(settings) {
-    if (game) {
-        game.setTumbleSettings(settings);
-    }
+  if (game && typeof game.setTumbleSettings === 'function') {
+    game.setTumbleSettings(settings);
+  }
 }
-
 function addCurve(start, end, intensity) {
-    if (game) {
-        game.addCurve(start, end, intensity);
-    }
+  if (game && game.curves && typeof game.curves.addCurve === 'function') {
+    game.curves.addCurve(start, end, intensity);
+  }
 }
 
-
+// Cancels the current game and resets speedometer (use this on Back)
 function resetGame() {
-    if (game) {
-        game.reset();
-        reset()
-    }
+  safeDestroyGame();
+  try { resetSpeedo(); } catch { }
 }
-// Function to set race distance
+
+// Sets the race distance (km). If a game is running, update it live.
 function setRaceDistance(distanceKm) {
-    currentRaceDistance = distanceKm;
-    console.log(`🏁 Race distance set to: ${distanceKm}km`);
+  currentRaceDistance = Number(distanceKm) || 1.0;
+  console.log(`🏁 Race distance set to: ${currentRaceDistance} km`);
 
-    // If game is already running, update the race distance
-    if (game) {
-        game.setRaceDistance(distanceKm);
-    }
+  if (game && typeof game.setRaceDistance === 'function') {
+    game.setRaceDistance(currentRaceDistance);
+  }
 }
 
-// Function to start the game with current distance
-function startNewGame() {
-    // Clean up existing game
-    if (game) {
-        // Dispose of previous game resources
-        game.renderer.dispose();
-        game.scene.dispose();
-        game = null;
-    }
+// Starts a new game; disposes any existing one first
+function startNewGame(containerSelector = '.road') {
+  // Kill previous game to avoid clashes
+  safeDestroyGame();
 
-    // Hide all screens and show game
-    screen.forEach(s => s.style.display = 'none');
-    gamepg.style.display = 'block';
+  // Switch UI to the game screen
+  showGameScreen();
 
-    // Start new game with current distance
-    game = new startGame('.road', currentRaceDistance);
+  // Create new instance
+  game = new startGame(containerSelector, currentRaceDistance);
 
-    // Add some curves for variety
-    game.curves.addCurve(100, 200, 0.02);
-    game.curves.addCurve(300, 400, -0.015);
-    game.curves.addCurve(500, 600, 0.025);
+  // Add some default curves/tuning if desired
+  try {
+    game.curves?.addCurve(100, 200, 0.02);
+    game.curves?.addCurve(300, 400, -0.015);
+    game.curves?.addCurve(500, 600, 0.025);
+  } catch { }
 
-    // Set tumble settings
-    game.tumbleSystem.setTumbleSettings({ duration: 1500 });
+  try {
+    game.tumbleSystem?.setTumbleSettings?.({ duration: 1500 });
+  } catch { }
 
-    console.log(`🎮 Game started with ${currentRaceDistance}km race`);
+  console.log(`🎮 Game started with ${currentRaceDistance} km`);
+  return game;
 }
 
-
-
-// Race distance button handlers
+// Optional: Race distance buttons wiring
 function setupRaceDistanceButtons() {
-    // Short race - 0.5km
-    if (shortRaceBtn) {
-        shortRaceBtn.addEventListener('click', () => {
-            setRaceDistance(2.0);
-            updateActiveRaceButton('short');
-        });
-    }
-
-    // Medium race - 1.0km (default)
-    if (mediumRaceBtn) {
-        mediumRaceBtn.addEventListener('click', () => {
-            setRaceDistance(3.0);
-            updateActiveRaceButton('medium');
-        });
-    }
-
-    // Long race - 2.0km
-    if (longRaceBtn) {
-        longRaceBtn.addEventListener('click', () => {
-            setRaceDistance(4.0);
-            updateActiveRaceButton('long');
-        });
-    }
-
-    // Custom race - prompt for distance
-    if (customRaceBtn) {
-        customRaceBtn.addEventListener('click', () => {
-            const customDistance = prompt('Enter race distance in kilometers:', currentRaceDistance);
-            if (customDistance && !isNaN(customDistance) && customDistance > 0) {
-                setRaceDistance(parseFloat(customDistance));
-                updateActiveRaceButton('custom');
-            }
-        });
-    }
-}
-
-// Update active race button styling
-function updateActiveRaceButton(activeType) {
-    // Remove active class from all buttons
-    const raceButtons = [shortRaceBtn, mediumRaceBtn, longRaceBtn, customRaceBtn];
-    raceButtons.forEach(btn => {
-        if (btn) {
-            btn.classList.remove('active-race');
-        }
+  // Example mapping (change to what you want)
+  // Short: 2.0 km, Medium: 3.0 km, Long: 4.0 km
+  if (shortRaceBtn) {
+    shortRaceBtn.addEventListener('click', () => {
+      setRaceDistance(2.0);
+      updateActiveRaceButton('short');
     });
-
-    // Add active class to selected button
-    switch (activeType) {
-        case 'short':
-            if (shortRaceBtn) shortRaceBtn.classList.add('active-race');
-            break;
-        case 'medium':
-            if (mediumRaceBtn) mediumRaceBtn.classList.add('active-race');
-            break;
-        case 'long':
-            if (longRaceBtn) longRaceBtn.classList.add('active-race');
-            break;
-        case 'custom':
-            if (customRaceBtn) customRaceBtn.classList.add('active-race');
-            break;
-    }
+  }
+  if (mediumRaceBtn) {
+    mediumRaceBtn.addEventListener('click', () => {
+      setRaceDistance(3.0);
+      updateActiveRaceButton('medium');
+    });
+  }
+  if (longRaceBtn) {
+    longRaceBtn.addEventListener('click', () => {
+      setRaceDistance(4.0);
+      updateActiveRaceButton('long');
+    });
+  }
+  if (customRaceBtn) {
+    customRaceBtn.addEventListener('click', () => {
+      const input = prompt('Enter race distance in kilometers:', currentRaceDistance);
+      const val = parseFloat(input);
+      if (!Number.isNaN(val) && val > 0) {
+        setRaceDistance(val);
+        updateActiveRaceButton('custom');
+      }
+    });
+  }
 }
 
+// Button state
+function updateActiveRaceButton(activeType) {
+  const raceButtons = [shortRaceBtn, mediumRaceBtn, longRaceBtn, customRaceBtn];
+  raceButtons.forEach(btn => btn?.classList.remove('active-race'));
 
- export {
-    startNewGame,
-    setRaceDistance,
-    resetGame,
-    setTumbleSettings,
-    addCurve,
-    FINISH_LINE_TYPES,
+  switch (activeType) {
+    case 'short': shortRaceBtn?.classList.add('active-race'); break;
+    case 'medium': mediumRaceBtn?.classList.add('active-race'); break;
+    case 'long': longRaceBtn?.classList.add('active-race'); break;
+    case 'custom': customRaceBtn?.classList.add('active-race'); break;
+  }
+}
+
+// If you want to auto-wire the distance buttons, call this once on boot
+// setupRaceDistanceButtons();
+
+export {
+  startNewGame,
+  setRaceDistance,
+  resetGame,
+  setTumbleSettings,
+  addCurve,
+  FINISH_LINE_TYPES,
 };

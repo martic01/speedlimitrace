@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { tracks } from '../../constants/material.js';
+import { roadDisplay } from './Mode';
 
 // Internal curve scheduler to place turns in meters/km
 class RoadCurvesManager {
@@ -124,7 +124,7 @@ export class Road {
     }
 
     createRoads() {
-        const roadTexture = new THREE.TextureLoader().load(tracks.road4);
+        const roadTexture = new THREE.TextureLoader().load(roadDisplay);
         roadTexture.wrapS = roadTexture.wrapT = THREE.RepeatWrapping;
         roadTexture.repeat.set(10, 1);
 

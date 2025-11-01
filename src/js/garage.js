@@ -6,26 +6,26 @@ import { garages, vechicles3D, vechicles } from "../constants/material.js";
 import { stopMusic, startAcc } from "./sounds.js";
 
 // Debug Three version
-try { console.log('THREE REV:', THREE.REVISION); } catch {}
+try { console.log('THREE REV:', THREE.REVISION); } catch { }
 
 // --- UI References ---
-const $  = (sel) => document.querySelector(sel);
+const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => document.querySelectorAll(sel);
 
-const garagesw     = $('.garagesw');
-const forwardcar   = $('.forw');
-const reversecar   = $('.rever');
-const samebtn      = $$('.same');
+const garagesw = $('.garagesw');
+const forwardcar = $('.forw');
+const reversecar = $('.rever');
+const samebtn = $$('.same');
 const carContainer = $('.car');
-const carInfos     = $$('.carinfo');
-const carName      = $('.name');
-const speedEl      = $('.sp');
+const carInfos = $$('.carinfo');
+const carName = $('.name');
+const speedEl = $('.sp');
 const accelerationEl = $('.ac');
-const handlingEl   = $('.hn');
-const protectEl    = $('.pd');
-const selecttxt    = $('.selecttxt');
-const garage       = $('.garage');
-const Selectbtn    = $('.selectbtn');
+const handlingEl = $('.hn');
+const protectEl = $('.pd');
+const selecttxt = $('.selecttxt');
+const garage = $('.garage');
+const Selectbtn = $('.selectbtn');
 
 // --- State ---
 let scene, camera, renderer, currentCar, controls;
@@ -45,54 +45,342 @@ let forwardMove = true;
 
 // Auto-spin state (model spins until you disable it via setAutoSpin(false))
 let autoSpinTarget = 0; // rad/s target angular velocity
-let autoSpinVel    = 0; // rad/s current angular velocity
-let autoSpinAccel  = THREE.MathUtils.degToRad(300); // rad/s^2 acceleration (ease in/out)
+let autoSpinVel = 0; // rad/s current angular velocity
+let autoSpinAccel = THREE.MathUtils.degToRad(300); // rad/s^2 acceleration (ease in/out)
 
 // --- View presets ---
 const VIEW_PRESETS = {
-  front:      { cameraPosition: { x: 0, y: 1.4, z:  5 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
-  side:       { cameraPosition: { x: 5, y: 0.7, z:  0 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
-  back:       { cameraPosition: { x: 0, y: 1.4, z: -5 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
-  top:        { cameraPosition: { x: 0, y: 3.0, z: 0.1 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
-  under:      { cameraPosition: { x: 0, y: -3,  z: 0.1 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
+  front: { cameraPosition: { x: 0, y: 1.4, z: 5 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
+  side: { cameraPosition: { x: 5, y: 0.7, z: 0 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
+  back: { cameraPosition: { x: 0, y: 1.4, z: -5 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
+  top: { cameraPosition: { x: 0, y: 3.0, z: 0.1 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
+  under: { cameraPosition: { x: 0, y: -3, z: 0.1 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
   '3quarter': { cameraPosition: { x: 3, y: 1.2, z: 3 }, cameraLookAt: { x: 0, y: 0, z: 0 }, enabled: true },
 };
 
 // --- Car data ---
 const garageVechicles = [
   {
-    id: '1ag', name: 'Fast time🕡', Car3D: vechicles3D.car3d1, CarImage: vechicles.redFrontView,
-    speed: '150km/h', acceleration: '10m/s²', handling: 'Medium', selected: true,
-    modelPosition: { x: 0, y: 1.4, z: 0 }, initialView: 'front', scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
-    carPosition: { x: 0, y: 0.3, z: -6 }, carScaleConfig: { defaultScale: 3.7 }, driveInStartZ: 6,
-    maxSpeed: 0.15, accel: 0.01, decel: 0.008, brakeDecel: 0.02, minorTK: 2, majorTK: 10, laneChangeSpeed: 0.1,
-    protectionDistance: 300, hasProtection: false, protectionRemaining: 3, protectionActive: false,
+    id: '1ag',
+    name: 'Fast time🕡',
+    Car3D: vechicles3D.car3d1,
+    CarImage: vechicles.redFrontView,
+    speed: '150km/h',
+    acceleration: '10m/s²',
+    handling: 'Medium',
+    selected: true,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.15,
+    accel: 0.01,
+    decel: 0.008,
+    brakeDecel: 0.02,
+    minorTK: 2,
+    majorTK: 10,
+    laneChangeSpeed: 0.1,
+
+    protectionDistance: 300,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
     disabledViews: { under: true, top: false, back: false },
-    rotationLimits: { minPolarAngle: Math.PI/2.1, maxPolarAngle: Math.PI/2, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity }
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
   },
   {
-    id: '2bg', name: 'Red Horse🐎', Car3D: vechicles3D.car3d2, CarImage: vechicles.redFrontView,
-    speed: '200km/h', acceleration: '10m/s²', handling: 'Medium', selected: false,
-    modelPosition: { x: 0, y: 1.4, z: 0 }, initialView: 'front', scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
-    carPosition: { x: 0, y: 0.3, z: -6 }, carScaleConfig: { defaultScale: 3.7 }, driveInStartZ: 6,
-    maxSpeed: 0.2, accel: 0.01, decel: 0.008, brakeDecel: 0.03, minorTK: 2, majorTK: 20, laneChangeSpeed: 0.2,
-    protectionDistance: 400, hasProtection: false, protectionRemaining: 3, protectionActive: false,
+    id: '2bg',
+    name: 'Red Horse🐎',
+    Car3D: vechicles3D.car3d2,
+    CarImage: vechicles.redFrontView,
+    speed: '200km/h',
+    acceleration: '10m/s²',
+    handling: 'Medium',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.2,
+    accel: 0.01,
+    decel: 0.008,
+    brakeDecel: 0.03,
+    minorTK: 2,
+    majorTK: 20,
+    laneChangeSpeed: 0.2,
+
+    protectionDistance: 400,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
     disabledViews: { under: true, top: false, back: false },
-    rotationLimits: { minPolarAngle: Math.PI/2.1, maxPolarAngle: Math.PI/2, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity }
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
   },
-  // ... keep your other cars unchanged ...
   {
-    id: '8fg', name: 'Storm-rider ⚡', Car3D: vechicles3D.car3d8, CarImage: vechicles.redFrontView,
-    speed: '1000km/h', acceleration: '40m/s²', handling: 'Pro-Star🌟', selected: false,
-    modelPosition: { x: 0, y: 1.4, z: 0 }, initialView: 'front', scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
-    carPosition: { x: 0, y: 0.3, z: -6 }, carScaleConfig: { defaultScale: 3.7 }, driveInStartZ: 6,
-    maxSpeed: 1, accel: 0.04, decel: 0.01, brakeDecel: 0.07, minorTK: 10, majorTK: 100, laneChangeSpeed: 0.6,
-    protectionDistance: 3000, hasProtection: false, protectionRemaining: 3, protectionActive: false,
+    id: '3cg',
+    name: 'Fist GT👊',
+    Car3D: vechicles3D.car3d3,
+    CarImage: vechicles.redFrontView,
+    speed: '200km/h',
+    acceleration: '10m/s²',
+    handling: 'Good',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.2,
+    accel: 0.01,
+    decel: 0.008,
+    brakeDecel: 0.03,
+    minorTK: 2,
+    majorTK: 20,
+    laneChangeSpeed: 0.2,
+
+    protectionDistance: 500,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
     disabledViews: { under: true, top: false, back: false },
-    rotationLimits: { minPolarAngle: Math.PI/2.1, maxPolarAngle: Math.PI/2, minAzimuthAngle: -Infinity, maxAzimuthAngle: Infinity }
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
+  },
+  {
+    id: '4dg',
+    name: 'New Dawn🔆',
+    Car3D: vechicles3D.car3d4,
+    CarImage: vechicles.redFrontView,
+    speed: '300km/h',
+    acceleration: '20m/s²',
+    handling: 'Good',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.3,
+    accel: 0.02,
+    decel: 0.008,
+    brakeDecel: 0.07,
+    minorTK: 3,
+    majorTK: 30,
+    laneChangeSpeed: 0.2,
+
+    protectionDistance: 500,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
+    disabledViews: { under: true, top: false, back: false },
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
+  },
+  {
+    id: '5eg',
+    name: 'Wizard 🪄',
+    Car3D: vechicles3D.car3d5,
+    CarImage: vechicles.redFrontView,
+    speed: '400km/h',
+    acceleration: '20m/s²',
+    handling: 'Pro',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.4,
+    accel: 0.02,
+    decel: 0.008,
+    brakeDecel: 0.07,
+    minorTK: 3,
+    majorTK: 40,
+    laneChangeSpeed: 0.3,
+
+    protectionDistance: 500,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
+    disabledViews: { under: true, top: false, back: false },
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
+  },
+  {
+    id: '6eg',
+    name: '🔥 At Last 🔥',
+    Car3D: vechicles3D.car3d6,
+    CarImage: vechicles.redFrontView,
+    speed: '500km/h',
+    acceleration: '30m/s²',
+    handling: 'LENGEND 🔥',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.5,
+    accel: 0.03,
+    decel: 0.009,
+    brakeDecel: 0.07,
+    minorTK: 4,
+    majorTK: 50,
+    laneChangeSpeed: 0.3,
+
+    protectionDistance: 700,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
+    disabledViews: { under: true, top: false, back: false },
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
+  },
+  {
+    id: '7eg',
+    name: 'Fear 🤬',
+    Car3D: vechicles3D.car3d7,
+    CarImage: vechicles.redFrontView,
+    speed: '700km/h',
+    acceleration: '30m/s²',
+    handling: 'STAR 🌟',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 0.7,
+    accel: 0.03,
+    decel: 0.01,
+    brakeDecel: 0.07,
+    minorTK: 4,
+    majorTK: 70,
+    laneChangeSpeed: 0.4,
+
+    protectionDistance: 1200,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
+    disabledViews: { under: true, top: false, back: false },
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
+  },
+  {
+    id: '8fg',
+    name: 'Storm-rider ⚡',
+    Car3D: vechicles3D.car3d8,
+    CarImage: vechicles.redFrontView,
+    speed: '1000km/h',
+    acceleration: '40m/s²',
+    handling: 'Pro-Star🌟',
+    selected: false,
+    unlocked: true,
+
+    modelPosition: { x: 0, y: 1.4, z: 0 },
+    initialView: 'front',
+    scaleConfig: { minScale: 1, maxScale: 6, defaultScale: 6 },
+
+    carPosition: { x: 0, y: 0.3, z: -6 },
+    carScaleConfig: { defaultScale: 3.7 },
+    driveInStartZ: 6,
+
+    maxSpeed: 1,
+    accel: 0.04,
+    decel: 0.01,
+    brakeDecel: 0.07,
+    minorTK: 10,
+    majorTK: 100,
+    laneChangeSpeed: 0.6,
+
+    protectionDistance: 3000,
+    hasProtection: false,
+    protectionRemaining: 3,
+    protectionActive: false,
+
+    disabledViews: { under: true, top: false, back: false },
+    rotationLimits: {
+      minPolarAngle: Math.PI / 2.1,
+      maxPolarAngle: Math.PI / 2,
+      minAzimuthAngle: -Infinity,
+      maxAzimuthAngle: Infinity
+    }
   },
 ];
-
 const garageBackgrounds = [
   { id: '1bg', name: 'Garage 1', image: garages.garage1, selected: true },
   { id: '2bg', name: 'Garage 2', image: garages.garage2, selected: false },
@@ -335,7 +623,7 @@ function updateLoadingProgress(percent) {
 }
 
 function hideLoadingAnimation() {
-  try { stopMusic?.(switchsound); } catch {}
+  try { stopMusic?.(switchsound); } catch { }
   clearTimeout(soundtime);
   const el = $('#model-loading');
   if (el) {
@@ -443,21 +731,21 @@ function loadCarModel(carData) {
 }
 
 function createTestCube() {
-  const g = new THREE.BoxGeometry(1,1,1);
+  const g = new THREE.BoxGeometry(1, 1, 1);
   const m = new THREE.MeshPhongMaterial({ color: 0x00ff00, transparent: true, opacity: 0.8 });
-  const cube = new THREE.Mesh(g,m);
-  cube.position.set(0,0,0);
+  const cube = new THREE.Mesh(g, m);
+  cube.position.set(0, 0, 0);
   return cube;
 }
 
 // --- UI ---
 let spintime;
 function animateCarIn() {
-    clearTimeout(spintime);
-   try{ setAutoSpin(false)} catch{}
-    spintime = setTimeout(()=>{  try{ setAutoSpin(true)} catch{}}, 2000);
+  clearTimeout(spintime);
+  try { setAutoSpin(false) } catch { }
+  spintime = setTimeout(() => { try { setAutoSpin(true) } catch { } }, 2000);
 
-  try { stopMusic?.(switchsound); } catch {}
+  try { stopMusic?.(switchsound); } catch { }
   switchsound = startAcc?.();
 
   // Restart CSS animations on all .carinfo blocks and container
@@ -477,13 +765,13 @@ function animateCarIn() {
 }
 
 function updateCarInfo(info) {
-  const picked = !!info?.selected;
-  if (carName)         carName.textContent = info?.name ?? '';
-  if (speedEl)         speedEl.textContent = info?.speed ?? '';
-  if (accelerationEl)  accelerationEl.textContent = info?.acceleration ?? '';
-  if (handlingEl)      handlingEl.textContent = info?.handling ?? '';
-  if (protectEl)       protectEl.textContent = ((info?.protectionDistance ?? 0) + 'm');
-  if (selecttxt)       selecttxt.textContent = picked ? 'Selected' : 'Select';
+  const picked = info?.selected;
+  if (carName) carName.textContent = info?.name ?? '';
+  if (speedEl) speedEl.textContent = info?.speed ?? '';
+  if (accelerationEl) accelerationEl.textContent = info?.acceleration ?? '';
+  if (handlingEl) handlingEl.textContent = info?.handling ?? '';
+  if (protectEl) protectEl.textContent = ((info?.protectionDistance ?? 0) + 'm');
+  if (selecttxt) selecttxt.textContent = picked ? 'Selected' : 'Select';
   Selectbtn?.classList.toggle('selected', picked);
 }
 
@@ -496,7 +784,7 @@ function updateCarInfo(info) {
 //   instant: if true, jump immediately to the new target speed
 function setAutoSpin(enable = true, opts = {}) {
   const speedDeg = opts.speedDeg ?? 25;
-  const dir      = Math.sign(opts.direction ?? 1) || 1;
+  const dir = Math.sign(opts.direction ?? 1) || 1;
 
   if (opts.accelDegPerSec2 != null) {
     autoSpinAccel = THREE.MathUtils.degToRad(opts.accelDegPerSec2);
@@ -511,7 +799,7 @@ function setAutoSpin(enable = true, opts = {}) {
 
 // --- Selection & nav ---
 function changeSelection() {
-  try { stopMusic?.(switchsound); } catch {}
+  try { stopMusic?.(switchsound); } catch { }
   clearTimeout(soundtime);
 
   const v = garageVechicles;
@@ -523,16 +811,13 @@ function changeSelection() {
   const car = v[count];
   Selectbtn?.setAttribute('id', car.id);
 
-  // Mark as selected (optional: keep single selection)
-  v.forEach(c => (c.selected = false));
-  car.selected = true;
 
   loadCarModel(car);
   updateCarInfo(car);
 }
 
 function selectGarage() {
-  try { stopMusic?.(switchsound); } catch {}
+  try { stopMusic?.(switchsound); } catch { }
   clearTimeout(soundtime);
 
   if (!garageBackgrounds.length || !garage) return;
@@ -568,9 +853,9 @@ function selectCar(id) {
   }
 }
 
-function getSelectedName()    { return selectedCar ? selectedCar.name.toUpperCase() : 'HYPER GT'; }
-function getSelectedAccel()   { return selectedCar ? selectedCar.acceleration : '4m/s²'; }
-function getSelectedHandling(){ return selectedCar ? selectedCar.handling    : 'regular'; }
+function getSelectedName() { return selectedCar ? selectedCar.name.toUpperCase() : 'HYPER GT'; }
+function getSelectedAccel() { return selectedCar ? selectedCar.acceleration : '4m/s²'; }
+function getSelectedHandling() { return selectedCar ? selectedCar.handling : 'regular'; }
 
 // --- Button group lock (for .same) ---
 let lockTimer = null;
@@ -596,7 +881,7 @@ function lockButtons(ms = 2800) {
   lockTimer = setTimeout(() => {
     buttonsLocked = false;
     samebtn.forEach(el => setInteractable(el, true));
-    try { stopMusic?.(switchsound); } catch {}
+    try { stopMusic?.(switchsound); } catch { }
   }, ms);
 }
 
@@ -611,7 +896,7 @@ function onSameBtnClick(e) {
 
 // --- Garage init ---
 function garageInit() {
-  try { stopMusic?.(switchsound); } catch {}
+  try { stopMusic?.(switchsound); } catch { }
   clearTimeout(soundtime);
 
   const firstSelected = garageVechicles.find(c => c.selected) || garageVechicles[0];
@@ -629,7 +914,7 @@ function garageInit() {
 // --- Boot ---
 document.addEventListener('DOMContentLoaded', () => {
   if (carContainer && (carContainer.clientWidth === 0 || carContainer.clientHeight === 0)) {
-    carContainer.style.width  = '100%';
+    carContainer.style.width = '100%';
     carContainer.style.height = '700px';
   }
 
@@ -637,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
   currentBgIndex = Math.max(0, garageBackgrounds.findIndex(g => g.selected));
   if (garage) {
     const bg = garageBackgrounds[currentBgIndex] ?? garageBackgrounds[0];
-    garageBackgrounds.forEach((g,i) => g.selected = (i === currentBgIndex));
+    garageBackgrounds.forEach((g, i) => g.selected = (i === currentBgIndex));
     garage.style.backgroundImage = `url(${bg.image})`;
     if (garagesw) {
       const nextIndex = (currentBgIndex + 1) % garageBackgrounds.length;

@@ -74,10 +74,10 @@
                 <div class="btns flex2 fm">
                     <button class="startbtn">Quick Match</button>
                     <div class="mode flex">
-                        <button class="mode1 calm">Calm</button>
-                        <button class="mode2 move">Move</button>
-                        <button class="mode3 scared">Scared</button>
-                        <button class="mode4 time">Time</button>
+                        <button class="mod mode1 calm">Calm</button>
+                        <button class="mod mode2 move">Move</button>
+                        <button class="mod mode3 scared">Scared</button>
+                        <button class="mod mode4 time">Time</button>
                     </div>
                     <button class="garagebtn">Garage </button>
                     <button class="mutebtn">Mute sound</button>
@@ -121,13 +121,34 @@
     </section>
 
     <section class="screen gamepg">
-        <div class="gamebdy flex sky">
+        <div class="gamebdy flex sky" id="sky">
             <div class="we"></div>
             <div class="display flex2">
                 <div class="topreadings">
-                    <button class="backbtn bbtn">
-                        &larr;-------
-                    </button>
+                    <div class="box flex">
+                        <button class="backbtn bbtn ingmbk flex">
+                            <p>Exit Match <span>400EXP</span></p>
+                        </button>
+                        <div class="time">
+
+                            <div class="hud-timer">
+                                <div class="glow glow-left"></div>
+
+                                <!-- The time text: edit this to your start time (e.g., 02:30) -->
+                                <div class="time">
+                                    <span class="dots">1:30</span>
+                                </div>
+
+                                <div class="glow glow-right"></div>
+
+                                <!-- optional tiny corner bars -->
+                                <div class="hud-bar hud-bar-left"></div>
+                                <div class="hud-bar hud-bar-right"></div>
+                            </div>
+
+                        </div>
+                    </div>
+
                 </div>
                 <div class="meter flex2">
                     <div class="com detail">
@@ -189,13 +210,6 @@
             </div>
         </div>
     </section>
-
-    <!-- &larr;
-                    &rarr;
-                    &darr;
-                    &uarr;
-                    &times; -->
-
 </body>
 
 </html>
