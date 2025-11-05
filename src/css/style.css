@@ -908,8 +908,164 @@ body {
 .topreadings {
     width: 100%;
     height: 17%;
-    justify-content: flex-start;
+    padding: 10px;
+    justify-content:space-between;
 }
+.topreadings  .distance{
+     width: 30%;
+    height: 80%;
+    justify-items: flex-start;
+}
+
+ .distance-hud {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, var(--hud-bg), rgba(10, 12, 20, .45));
+            box-shadow:
+                inset 0 1px 0 var(--hud-glass),
+                0 10px 30px rgba(0, 0, 0, .25);
+            backdrop-filter: saturate(1.15) blur(4px);
+            -webkit-backdrop-filter: saturate(1.15) blur(4px);
+            animation: hud-pop .35s ease-out both;
+
+            /* icon sizing + progress (0..1) */
+            --size: 100px;
+            --progress: .5;
+            /* set via inline style; 0..1 fills the arc */
+            --stroke: 8px;
+        }
+
+        /* Radar icon */
+        .radar-icon {
+            position: relative;
+            width: var(--size);
+            height: var(--size);
+            filter: drop-shadow(0 0 12px rgba(42, 244, 233, .25));
+        }
+
+        /* Ring base and fill, masked to donut */
+        .ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            -webkit-mask: radial-gradient(circle at center,
+                    transparent calc(50% - var(--stroke)),
+                    #000 calc(50% - var(--stroke)),
+                    #000 50%,
+                    transparent 50%);
+            mask: radial-gradient(circle at center,
+                    transparent calc(50% - var(--stroke)),
+                    #000 calc(50% - var(--stroke)),
+                    #000 50%,
+                    transparent 50%);
+        }
+
+        /* Track arc (270°) */
+        .ring.track {
+            background:
+                conic-gradient(from -135deg,
+                    #1b2240 0deg,
+                    #1b2240 270deg,
+                    transparent 270deg 360deg);
+        }
+
+        /* Fill arc using progress */
+        .ring.fill {
+            background:
+                conic-gradient(from -135deg,
+                    var(--accent) calc(270deg * var(--progress)),
+                    transparent 0);
+            box-shadow: inset 0 0 20px rgba(42, 244, 233, .2);
+        }
+
+        /* Center dot */
+        .dot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0e1330;
+            box-shadow: inset 0 0 0 1px #1b2240, 0 0 10px rgba(42, 244, 233, .35);
+        }
+
+        /* Soft radar pulses */
+        .pulse {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, var(--accent) 0 30%, transparent 31%);
+            opacity: .6;
+            animation: ping 2.6s ease-out infinite;
+        }
+
+        .pulse.p2 {
+            animation-delay: .9s;
+        }
+
+        @keyframes ping {
+            0% {
+                transform: translate(-50%, -50%) scale(.8);
+                opacity: .6;
+            }
+
+            70% {
+                transform: translate(-50%, -50%) scale(2.1);
+                opacity: .1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(2.4);
+                opacity: 0;
+            }
+        }
+
+        /* Text */
+        .distance-text {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+        }
+
+        .distance-text .value {
+            color: var(--text);
+            font-weight: 800;
+            font-size: 3rem;
+            letter-spacing: .5px;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, .06);
+        }
+
+        .distance-text .unit {
+            color: aqua;
+            font-weight: 700;
+            font-size: 17px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Entrance */
+        @keyframes hud-pop {
+            from {
+                transform: translateY(6px) scale(.98);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
 
 .topreadings .box {
     width: 30%;
@@ -929,13 +1085,19 @@ body {
 .hud-timer {
     margin-top: 10px;
     position: relative;
-    width:90%;
-    height:100%;
-    display: grid;
+    padding: 20px 7px;
+    display: flex;
     place-items: center;
     isolation: isolate;
-    background-color: rgba(0, 0, 0, 0.829);
+    background-color: rgb(0, 0, 0);
     box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px;
+    border-radius: 10px;
+}
+
+@keyframes time-blink {
+    50% {
+        opacity: .5;
+    }
 }
 
 /* Side glows */
@@ -950,7 +1112,7 @@ body {
     pointer-events: none;
     background: radial-gradient(120% 70% at 0% 50%, rgba(42, 244, 233, 0.18), transparent 70%),
         radial-gradient(100% 100% at 20% 50%, rgba(42, 244, 233, 0.12), transparent 70%);
-        
+
 }
 
 .glow-left {
@@ -991,6 +1153,7 @@ body {
     line-height: 1;
 
     /* Create dotted fill inside text */
+
     color: transparent;
     background:
         radial-gradient(circle at center, var(--color) var(--dot), transparent calc(var(--dot) + 0.5%)) 0 0 / var(--cell) var(--cell) repeat;
@@ -1006,6 +1169,34 @@ body {
 
     /* Subtle pulse */
     animation: glow-pulse 2.8s ease-in-out infinite;
+}
+
+.timestamp.warn {
+    --cell: 12px;
+    /* dot pitch (grid spacing) */
+    --dot: 40%;
+    --color: #f93b3e;
+    --glow: 0 0 22px rgba(244, 42, 42, 0.685), 0 0 52px rgba(244, 42, 42, 0.548);
+     font-weight: 800;
+    font-size: clamp(70px, 10vw, 80px);
+    letter-spacing: 0.06em;
+    line-height: 1;
+
+    /* Outer glow */
+   
+
+    color: transparent;
+    background:
+        radial-gradient(circle at center, var(--color) var(--dot), transparent calc(var(--dot) + 0.5%)) 0 0 / var(--cell) var(--cell) repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+     filter: drop-shadow(var(--glow));
+    text-shadow:
+        0 1px 0 rgba(237, 55, 55, 0),
+        0 0 16px rgba(255, 17, 17, 0.25);
+    animation: time-blink .6s steps(2, end) infinite;
 }
 
 /* Tiny corner HUD bars */
@@ -1088,16 +1279,16 @@ body {
     transition: .3s;
     font-size: 14px;
     width: 28%;
-    padding: 30px 4px;
+    padding: 30px 7px;
     background-color: transparent;
     border: 3px solid white;
     font-weight: bolder;
     color: white;
-    border-radius: 100%;
+    border-radius: 70% 0  0 70%   ;
     gap: 10px;
 }
 
-.topreadings .box .ingmbk:hover{
+.topreadings .box .ingmbk:hover {
     background-color: #0303035d;
     box-shadow: 0 0 30px rgba(255, 0, 0, 0.603);
     cursor: pointer;

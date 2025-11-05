@@ -124,32 +124,43 @@
         <div class="gamebdy flex sky" id="sky">
             <div class="we"></div>
             <div class="display flex2">
-                <div class="topreadings">
+                <div class="topreadings flex">
                     <div class="box flex">
                         <button class="backbtn bbtn ingmbk flex">
                             <p>Exit Match <span>400EXP</span></p>
                         </button>
                         <div class="time">
-
                             <div class="hud-timer">
                                 <div class="glow glow-left"></div>
-
                                 <!-- The time text: edit this to your start time (e.g., 02:30) -->
                                 <div class="time">
-                                    <span class="dots">1:30</span>
+                                    <span class="dots timestamp">1:30</span>
                                 </div>
-
                                 <div class="glow glow-right"></div>
-
                                 <!-- optional tiny corner bars -->
                                 <div class="hud-bar hud-bar-left"></div>
                                 <div class="hud-bar hud-bar-right"></div>
                             </div>
+                        </div>
 
+                    </div>
+                    <div class="distance">
+                        <div class="distance-hud" style="--size:64px; --progress:.65">
+                            <div class="radar-icon" aria-hidden="true">
+                                <span class="ring track"></span>
+                                <span class="ring fill"></span>
+                                <span class="dot"></span>
+                                <span class="pulse p1"></span>
+                                <span class="pulse p2"></span>
+                            </div>
+                            <div class="distance-text">
+                                <span class="value">0.00</span>
+                                <span class="unit">km</span>
+                            </div>
                         </div>
                     </div>
-
                 </div>
+
                 <div class="meter flex2">
                     <div class="com detail">
                         <div class="headering">

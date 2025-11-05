@@ -1,20 +1,18 @@
 import { weathers, tracks, enviromental, vechicles3D } from "../../constants/material";
 import { startNewGame, setRaceDistance } from ".";
-import { selectedCar } from "../garage"; // if needed
+import { selectedCar } from "../garage";
 
-
-const x = (sel) => document.querySelector(sel);
+const x  = (sel) => document.querySelector(sel);
 const x2 = (sel) => document.querySelectorAll(sel);
 
-const mod = x2('.mod');
-const enviroDisplay = x('.sky');
+const mod            = x2('.mod');
+const enviroDisplay  = x('.sky');
 const weatherDisplay = x('.we');
-
-
+const timestamp      = x('.timestamp');
 
 let roadDisplay;
 
-// Unique preload cache (URL -> Promise)
+// -------------------- Preload helpers --------------------
 const imageCache = new Map();
 
 function preloadImage(url) {
@@ -24,33 +22,24 @@ function preloadImage(url) {
   const p = new Promise((resolve) => {
     const img = new Image();
     img.decoding = 'async';
-    // Use decode() when possible for faster paint
     const done = () => resolve();
     img.onload = done;
     img.onerror = done;
     img.src = url;
-
-    if (img.decode) {
-      img.decode().then(done).catch(done);
-    }
+    if (img.decode) img.decode().then(done).catch(done);
   });
 
   imageCache.set(url, p);
   return p;
 }
 
-// Preload all assets for a mode
 function preloadModeAssets(mode) {
   if (!mode) return Promise.resolve();
-  const urls = [
-    mode.enviro,
-    mode.weather,
-    mode.track // warming the HTTP cache; TextureLoader will benefit later
-  ].filter(Boolean);
-  return Promise.all(urls.map(preloadImage)).then(() => { });
+  const urls = [ mode.enviro, mode.weather, mode.track ].filter(Boolean);
+  return Promise.all(urls.map(preloadImage)).then(() => {});
 }
 
-// All modes use the same key: "enviro"
+// -------------------- Modes --------------------
 const modes = [
   {
     id: "ma1",
@@ -63,9 +52,9 @@ const modes = [
     enviro: enviromental.enviroment1,
     minSpeed: 0,
     maxSpeed: 0,
-    time: 80,
-    distance: 1,
-    carRequirement: 200,
+    time: 23,     // seconds
+    distance: 1,  // km
+    carRequirement: 200, // km/h
     gems: 200,
     Exp: 20,
     rate: 0,
@@ -149,7 +138,7 @@ const modes = [
   },
 ];
 
-// Attach mode ids and indices to buttons safely
+// -------------------- UI helpers --------------------
 function tieId() {
   mod.forEach((btn, idx) => {
     const mode = modes[idx];
@@ -159,14 +148,10 @@ function tieId() {
   });
 }
 
-// Apply mode visuals + track before starting the game (waits for decode)
 async function applyMode(mode) {
   if (!mode) return;
-
-  // Warm assets for this mode first
   await preloadModeAssets(mode);
 
-  // Update environment background
   if (enviroDisplay && mode.enviro) {
     enviroDisplay.style.backgroundImage = `url(${mode.enviro})`;
     enviroDisplay.style.backgroundSize = 'cover';
@@ -174,7 +159,6 @@ async function applyMode(mode) {
     enviroDisplay.style.backgroundRepeat = 'no-repeat';
   }
 
-  // Update weather overlay/background
   if (weatherDisplay && mode.weather) {
     weatherDisplay.style.backgroundImage = `url(${mode.weather})`;
     weatherDisplay.style.backgroundSize = 'cover';
@@ -182,10 +166,7 @@ async function applyMode(mode) {
     weatherDisplay.style.backgroundRepeat = 'no-repeat';
   }
 
-  // Track for the Road; export is a live binding
   roadDisplay = mode.track;
-
-  // Distance for the race (if your start reads it later, set it now)
   if (typeof setRaceDistance === 'function') {
     setRaceDistance(mode.distance ?? 1);
   }
@@ -195,66 +176,184 @@ function getModeById(id) {
   return modes.find(m => m.id === id) || null;
 }
 
+// -------------------- Timer controller (Boolean API) --------------------
+const timer = {
+  durationSec: 60,
+  remainingSec: 60,
+  running: false,
+  endTs: 0,
+  timeoutId: null,
+  onEnd: null,
+};
 
+function setTimestampDisplay(sec) {
+  if (!timestamp) return;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  timestamp.textContent = `${m}:${s.toString().padStart(2, '0')}s`;
+  if (sec <= 20){ 
+    timestamp.classList.add('warn');
+  }else {
+    timestamp.classList.remove('warn');
+  }
+}
+
+function clearTimerTimeout() {
+  if (timer.timeoutId) {
+    clearTimeout(timer.timeoutId);
+    timer.timeoutId = null;
+  }
+}
+
+function scheduleTick() {
+  const remainingMs = Math.max(0, timer.endTs - Date.now());
+  const sec = Math.ceil(remainingMs / 1000);
+  timer.remainingSec = sec;
+  setTimestampDisplay(sec);
+
+  if (remainingMs <= 0) {
+    timer.running = false;
+    clearTimerTimeout();
+    document.dispatchEvent(new CustomEvent('mode:timeup'));
+    try { timer.onEnd?.(); } catch {}
+    return;
+  }
+  const nextIn = remainingMs % 1000 || 1000;
+  timer.timeoutId = setTimeout(scheduleTick, nextIn);
+}
+
+/**
+ * Configure timer once. Does not start unless startImmediately is true.
+ * ex: configureTimer({ duration: 90, onEnd: ()=>resetGame(), startImmediately: false })
+ */
+function configureTimer({ duration, onEnd, startImmediately = false } = {}) {
+  clearTimerTimeout();
+  if (Number.isFinite(duration) && duration > 0) {
+    timer.durationSec = Math.floor(duration);
+  }
+  timer.onEnd = onEnd ?? null;
+  timer.running = false;
+  timer.remainingSec = timer.durationSec;
+  setTimestampDisplay(timer.remainingSec);
+  if (startImmediately) setTimerRunning(true);
+}
+
+/**
+ * Boolean API to start/pause the timer.
+ * setTimerRunning(true)  -> starts/resumes with remainingSec
+ * setTimerRunning(false) -> pauses and keeps remainingSec
+ */
+function setTimerRunning(run = false) {
+  if (run) {
+    if (timer.running) return;
+    // If remainingSec is 0 (finished), reset to duration
+    if (!Number.isFinite(timer.remainingSec) || timer.remainingSec <= 0) {
+      timer.remainingSec = timer.durationSec;
+    }
+    timer.endTs = Date.now() + timer.remainingSec * 1000;
+    timer.running = true;
+    scheduleTick();
+  } else {
+    if (!timer.running) return;
+    clearTimerTimeout();
+    // snapshot remaining
+    const remainingMs = Math.max(0, timer.endTs - Date.now());
+    timer.remainingSec = Math.ceil(remainingMs / 1000);
+    timer.running = false;
+  }
+}
+
+/** Reset the timer to a (new) duration without starting. */
+function resetTimer(duration) {
+  configureTimer({ duration, onEnd: timer.onEnd, startImmediately: false });
+}
+
+/** Convenience getter */
+function getRemainingTime() {
+  return timer.remainingSec;
+}
+
+// Back-compat helpers
+function startCountdown(seconds, onEnd) {
+  configureTimer({ duration: seconds, onEnd, startImmediately: false });
+}
+function stopCountdown() {
+  setTimerRunning(false);
+}
+
+// -------------------- Init / Bind --------------------
 function initMode() {
   tieId();
 
-  // Preload on hover/focus (anticipatory)
+  // Preload on hover/focus
   mod.forEach((btn, idx) => {
     const mode = modes[idx];
     if (!mode) return;
-
     const warm = () => preloadModeAssets(mode);
     btn.addEventListener('pointerenter', warm, { passive: true });
     btn.addEventListener('focus', warm, { passive: true });
-    btn.addEventListener('mouseenter', warm, { passive: true }); // fallback
+    btn.addEventListener('mouseenter', warm, { passive: true });
   });
 
-
-  // Bind clicks once
-  let timegame;
+  // Click to start mode
   mod.forEach((btn) => {
-    clearInterval(timegame)
     btn.addEventListener('click', async () => {
       const idx = Number(btn.dataset.modeIndex);
       const mode = Number.isFinite(idx) ? modes[idx] : getModeById(btn.id);
-      const needSpeed = selectedCar.maxSpeed * 1000
-      const modeSpeed = mode.carRequirement
-      if (!mode || needSpeed < modeSpeed) {
-        alert('invadild speed ' + needSpeed + ' to ' + modeSpeed)
+      if (!mode) return;
+
+      // Validate car requirement
+      const carSpeedKmH = Math.round((selectedCar?.maxSpeed ?? 0) * 1000);
+      if (!selectedCar || carSpeedKmH < 100) {
+        alert(`Car too slow for "${mode.name}". Required ≥ ${mode.carRequirement} km/h, you have ${carSpeedKmH} km/h`);
         return;
       }
-      // 1) Apply mode first so backgrounds/track are decoded and ready
+
+      // Apply visuals and distance
       await applyMode(mode);
 
-      // 2) Swap to game screen
+      // Set timer for the mode and start it via boolean API
+      configureTimer({
+        duration: mode.time,
+        onEnd: () => {
+          alert("Time's up!");
+        },
+        startImmediately: false,
+      });
 
 
-
-      // 3) Start game after mode is applied
-      if (typeof startNewGame === 'function') {
-        timegame = setTimeout(() => {
-          startNewGame();
-        }, 5000);
-
-      }
+      // Start game after a small delay (countdown continues)
+      setTimeout(() => {
+        startNewGame?.();
+      }, 1000);
     });
   });
 
-  // Warm all assets during idle time (best-effort, non-blocking)
+  // Idle warmup of all assets
   const idle = window.requestIdleCallback || function (cb) { setTimeout(() => cb({ timeRemaining: () => 0 }), 300); };
   idle(() => {
     const urls = new Set();
     modes.forEach(m => {
       if (m.enviro) urls.add(m.enviro);
       if (m.weather) urls.add(m.weather);
-      if (m.track) urls.add(m.track);
+      if (m.track)  urls.add(m.track);
     });
     [...urls].forEach(u => preloadImage(u));
   });
 }
 
-// Auto-init or export and call later
+// Auto-init
 initMode();
 
-export { initMode, roadDisplay };
+export {
+  initMode,
+  roadDisplay,
+  // Timer API
+  configureTimer,
+  setTimerRunning,
+  resetTimer,
+  getRemainingTime,
+  // Back-compat (optional)
+  startCountdown,
+  stopCountdown,
+};

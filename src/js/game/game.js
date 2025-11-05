@@ -8,9 +8,13 @@ import { Curves } from './Curves.js';
 import { TumbleSystem } from './TumbleSystem.js';
 import { setHolding, setMeters, updateSpeed, speedo } from './speedo.js';
 import { gameMusic, stopAll } from '../sounds.js';
+import { initDistanceHUD, updateDistanceHUD, resetDistanceHUD, destroyDistanceHUD } from './distanceHud.js';
+import { configureTimer, setTimerRunning,startCountdown, resetTimer } from './Mode.js'
 
 export class startGame {
   constructor(containerSelector = '.road', distanceKm = 1) {
+    this.x = (sel) => document.querySelector(sel);
+    this.x2 = (sel) => document.querySelectorAll(sel);
     this.containerSelector = containerSelector;
     this.raceDistance = distanceKm * 1000;
     this.controls = Controls;
@@ -77,17 +81,17 @@ export class startGame {
     this._disposed = true;
 
     // Stop loops and states
-    try { cancelAnimationFrame(this._rafId); } catch {}
+    try { cancelAnimationFrame(this._rafId); } catch { }
     this._rafId = null;
     this.countdownActive = false;
     this.isBouncingBack = false;
     this.isExploding = false;
 
     // Detach input listeners if your Controls class supports it
-    try { this.controls?.dispose?.(); } catch {}
+    try { this.controls?.dispose?.(); } catch { }
 
     // Dispose scene objects
-    try { this.disposeSceneObjects(); } catch {}
+    try { this.disposeSceneObjects(); } catch { }
 
     // Dispose renderer and canvas
     try {
@@ -97,22 +101,23 @@ export class startGame {
       if (this.renderer?.domElement?.parentNode) {
         this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
       }
-    } catch {}
+    } catch { }
 
     // Reset speedometer
     try {
       setHolding(false);
       setMeters(0, 0, 0, 0, 0);
       updateSpeed(0);
-    } catch {}
+    } catch { }
 
     // Remove countdown display if exists
     try {
       const countdownDisplay = document.getElementById('countdown-display');
       countdownDisplay?.remove?.();
-    } catch {}
+    } catch { }
 
     // Null references for GC
+    destroyDistanceHUD();
     this.car = null;
     this.road = null;
     this.finishLine = null;
@@ -128,7 +133,7 @@ export class startGame {
     if (!this.scene) return;
     this.scene.traverse((obj) => {
       if (obj.isMesh) {
-        try { obj.geometry?.dispose?.(); } catch {}
+        try { obj.geometry?.dispose?.(); } catch { }
         try {
           const mats = Array.isArray(obj.material) ? obj.material : [obj.material];
           mats.forEach((mat) => {
@@ -139,13 +144,13 @@ export class startGame {
             }
             mat.dispose?.();
           });
-        } catch {}
+        } catch { }
       }
     });
     // Remove all children from scene
     const children = [...this.scene.children];
     children.forEach(c => {
-      try { this.scene.remove(c); } catch {}
+      try { this.scene.remove(c); } catch { }
     });
   }
 
@@ -220,6 +225,7 @@ export class startGame {
     }
   }
 
+
   applyDefaultSettings() {
     this.setTumbleSettings({ speed: 0.1, threshold: 0.1, duration: 2000 });
     this.addCurve(200, 700, 0.01);
@@ -253,12 +259,14 @@ export class startGame {
   }
 
   setRaceDistance(distanceKm) {
-    this.raceDistance = distanceKm * 1000;
-    if (this.finishLine) {
-      this.scene.remove(this.finishLine.mesh);
-      this.finishLine = new FinishLine(this.scene, -this.raceDistance);
-    }
+  this.raceDistance = distanceKm * 1000;
+  if (this.finishLine) {
+    this.scene.remove(this.finishLine.mesh);
+    this.finishLine = new FinishLine(this.scene, -this.raceDistance);
+    startCountdown()
   }
+  resetDistanceHUD();
+}
 
   applyPendingSettings() {
     if (this.pendingTumbleSettings) {
@@ -295,6 +303,8 @@ export class startGame {
     this.brakeDecel = this.car.getBrakeDeceleration ? this.car.getBrakeDeceleration() : 0.03;
 
     speedo();
+    initDistanceHUD();
+    resetDistanceHUD();
     this.car.startAnyAnimation('idle');
 
     this.applyPendingSettings();
@@ -465,7 +475,7 @@ export class startGame {
     const decel = baseDecel * dtNorm * rateScale;
     const brakeDecel = baseBrake * dtNorm * rateScale;
     const coastDecel = (this.coastDecel ?? 0.004) * dtNorm * rateScale;
-
+    let timecount;
     if (this.controls.braking) {
       this.speed = Math.max(0, this.speed - brakeDecel);
       setHolding(false);
@@ -473,6 +483,7 @@ export class startGame {
       this.speed = Math.max(0, this.speed - decel);
       setHolding(false);
     } else if (this.controls.upPressed && !this.raceFinished) {
+      setTimerRunning(true)
       this.speed = Math.min(maxSpeed, this.speed + accel);
       setHolding(true);
     } else if (!this.raceFinished) {
@@ -608,11 +619,14 @@ export class startGame {
   }
 
   updateDistanceDisplay() {
-    const distanceElement = document.getElementById('distance-display');
-    if (distanceElement) {
-      distanceElement.textContent = `Distance: ${(this.totalDistance / 1000).toFixed(2)}km / ${(this.raceDistance / 1000).toFixed(1)}km`;
-    }
+  const distanceElement = document.getElementById('distance-display');
+  if (distanceElement) {
+    distanceElement.textContent =
+      `Distance: ${(this.totalDistance / 1000).toFixed(2)}km / ${(this.raceDistance / 1000).toFixed(1)}km`;
   }
+  // Keep radar in sync every frame
+  updateDistanceHUD(this.totalDistance, this.raceDistance);
+}
 
   startAnimation() {
     const loop = () => {
@@ -639,6 +653,7 @@ export class startGame {
     this.curves.reset();
     this.car.reset();
 
+    resetDistanceHUD();
     setMeters(0, 0, 0, 0, 0);
     this.camera.position.set(0, 2, 5);
 
