@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { obstacles } from '../../constants/material.js';
-import { crash,explode, stopAll } from '../sounds.js';
-
+import { crash, explode, stopAll } from '../sounds.js';
 
 export class Obstacles {
     constructor(scene, car, game) {
@@ -11,7 +10,7 @@ export class Obstacles {
         this.obstacles = [];
         this.nextObstacleDistance = 100;
         this.activeObstacle = null;
-        this.nowSound = null
+        this.nowSound = null;
 
         this.OBSTACLE_TYPES = {
             DROP_ROCK: 'dropRock',
@@ -94,8 +93,6 @@ export class Obstacles {
         this.scene.add(mesh);
         this.scene.add(outlineMesh);
         this.activeObstacle = mesh;
-        
-        // console.log(`🆕 Spawned ${type} obstacle at lane ${lane}`);
     }
 
     update(distanceThisFrame, totalDistance, raceDistance) {
@@ -139,24 +136,20 @@ export class Obstacles {
 
             // Remove if passed
             if (this.activeObstacle.position.z > this.car.mesh.position.z + 5) {
-                // console.log(`🗑️ Removed ${this.activeObstacle.userData.type} obstacle`);
                 this.removeObstacle();
             }
         }
     }
 
-   checkCollisions(car, tumbleSystem) {
+    checkCollisions(car, tumbleSystem) {
         if (!this.activeObstacle) return;
 
         const carBox = new THREE.Box3().setFromObject(car.mesh);
         const obsBox = new THREE.Box3().setFromObject(this.activeObstacle);
 
         if (carBox.intersectsBox(obsBox)) {
-            // console.log(`💥 Collision with ${this.activeObstacle.userData.type}!`);
-            
             // CHECK PROTECTION FIRST
             if (car.isProtected && car.isProtected()) {
-                // console.log("🛡️ Collision blocked by protection!");
                 car.handleCollision(this.activeObstacle.userData.type);
                 this.removeObstacle();
                 return;
@@ -165,10 +158,10 @@ export class Obstacles {
             // Normal collision handling if not protected
             if (this.activeObstacle.userData.type === this.OBSTACLE_TYPES.ROCK || 
                 this.activeObstacle.userData.type === this.OBSTACLE_TYPES.DROP_ROCK) {
-                    stopAll()
+                stopAll();
                 this.handleRockCollision();
             } else if (this.activeObstacle.userData.type === this.OBSTACLE_TYPES.BOMB) {
-                stopAll()
+                stopAll();
                 this.handleBombCollision(tumbleSystem);
             }
 
@@ -177,8 +170,7 @@ export class Obstacles {
     }
 
     handleRockCollision() {
-        // console.log("💥 Hit rock! Bouncing back...");
-        stopAll()
+        stopAll();
         // Calculate bounce force based on current speed
         const bounceForce = this.game.speed * 0.8;
         
@@ -188,25 +180,22 @@ export class Obstacles {
         this.game.bounceDuration = 800;
         this.game.bounceForce = bounceForce;
         this.game.originalSpeed = this.game.speed;
-        this.nowSound = crash()
+        this.nowSound = crash();
         
         // Dramatic speed reduction
         this.game.speed = Math.max(0, this.game.speed * 0.2);
         
         // Camera shake effect
         this.shakeCamera(600);
-        
-        // console.log(`Bounce force: ${bounceForce.toFixed(3)}, New speed: ${this.game.speed.toFixed(3)}`);
     }
 
     handleBombCollision(tumbleSystem) {
-        // console.log("💣 Bomb hit! Explosive flying animation!");
-        stopAll()
+        stopAll();
         // Set explosive flying state
         this.game.isExploding = true;
         this.game.explosionStartTime = Date.now();
         this.game.explosionDuration = 3000;
-        this.nowSound = explode(3000)
+        this.nowSound = explode(3000);
         // Stop the car completely
         this.game.speed = 0;
         
@@ -333,8 +322,6 @@ export class Obstacles {
     }
 
     startFlyingAnimation() {
-        // console.log("🚀 Starting flying animation");
-        
         // Check if car and mesh exist
         if (!this.car || !this.car.mesh) {
             console.error("❌ Cannot start flying animation: car or car.mesh is undefined");
@@ -456,8 +443,6 @@ export class Obstacles {
     }
 
     endExplosion(tumbleSystem) {
-        // console.log("💥 Explosion finished! Resetting car...");
-        
         // Clean up explosion effects
         if (this.game.explosionEffects) {
             this.game.explosionEffects.forEach(explosion => {

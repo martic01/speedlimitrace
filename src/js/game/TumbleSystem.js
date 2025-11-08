@@ -1,11 +1,12 @@
 import * as THREE from 'three';
 import { obstacles } from '../../constants/material.js';
-
+import { crash, explode, stopAll } from '../sounds.js';
 
 export class TumbleSystem {
-    constructor(car, camera) {
+    constructor(car, camera, game = null) {
         this.car = car;
         this.camera = camera;
+        this.game = game;
         
         this.isTumbling = false;
         this.isReturningToNormal = false;
@@ -14,9 +15,11 @@ export class TumbleSystem {
         this.tumbleDuration = 3000;
         this.tumbleStartTime = 0;
         
-
         this.explosionEffect = obstacles.explodeEffect;
         this.explosion = null;
+        
+        // Missile destruction flag
+        this.destroyedByMissile = false;
     }
 
     setTumbleSettings({ speed = 0.15, threshold = 0.3, duration = 3000 } = {}) {
@@ -51,15 +54,16 @@ export class TumbleSystem {
     }
 
     // Method to reset car to original colors
-   resetCarColor() {
-    if (this.car) {
-        this.car.resetColor();
+    resetCarColor() {
+        if (this.car) {
+            this.car.resetColor();
+        }
     }
-}
-
 
     startTumble() {
-        this.car.startAnyAnimation('falling')
+        if (this.car.startAnyAnimation) {
+            this.car.startAnyAnimation('falling');
+        }
         this.isTumbling = true;
         this.tumbleStartTime = Date.now();
          
@@ -80,7 +84,6 @@ export class TumbleSystem {
             map: texture, 
             transparent: true,
             opacity: 1.0
-            
         });
         this.explosion = new THREE.Sprite(mat);
         this.explosion.scale.set(5, 5, 1);
@@ -89,8 +92,76 @@ export class TumbleSystem {
         scene.add(this.explosion);
 
         // Start tumble
-       
         this.startTumble();
+    }
+
+    // New method for missile destruction
+    triggerMissileDestruction(scene) {
+        console.log("💥 MISSILE DESTRUCTION! Car destroyed!");
+        this.destroyedByMissile = true;
+        
+        // Change car color to dark red for destruction effect
+        this.setCarColor(0x8B0000);
+        
+        // Create massive explosion
+        this.createMassiveExplosion(scene);
+        
+        // Start extended tumble for missile destruction
+        this.tumbleDuration = 5000;
+        this.tumbleSpeed = 0.25;
+        this.startTumble();
+        
+        // Stop game if available
+        if (this.game && this.game.stopGame) {
+            setTimeout(() => {
+                this.game.stopGame("💥 CAR DESTROYED BY MISSILE!");
+            }, 2000);
+        }
+    }
+
+    createMassiveExplosion(scene) {
+        // Create multiple large explosions
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                const texture = new THREE.TextureLoader().load(this.explosionEffect);
+                const mat = new THREE.SpriteMaterial({ 
+                    map: texture, 
+                    transparent: true,
+                    blending: THREE.AdditiveBlending,
+                    opacity: 1.0
+                });
+                const explosion = new THREE.Sprite(mat);
+                explosion.scale.set(8 + Math.random() * 4, 8 + Math.random() * 4, 1);
+                explosion.position.set(
+                    this.car.mesh.position.x + (Math.random() - 0.5) * 3,
+                    this.car.mesh.position.y + Math.random() * 2,
+                    this.car.mesh.position.z + (Math.random() - 0.5) * 3
+                );
+                scene.add(explosion);
+                
+                // Animate explosion
+                this.animateExplosion(explosion, 1000);
+            }, i * 200);
+        }
+    }
+
+    animateExplosion(explosion, duration) {
+        const startTime = Date.now();
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = elapsed / duration;
+            
+            if (progress < 1) {
+                explosion.scale.multiplyScalar(1.02);
+                explosion.material.opacity = 1 - progress;
+                requestAnimationFrame(animate);
+            } else {
+                if (explosion.parent) {
+                    explosion.parent.remove(explosion);
+                }
+            }
+        };
+        animate();
     }
 
     update() {
@@ -98,26 +169,30 @@ export class TumbleSystem {
             this.updateTumble();
         } else if (this.isReturningToNormal) {
             this.updateReturnToNormal();
-            this.car.startAnyAnimation('idle')
+            if (this.car.startAnyAnimation) {
+                this.car.startAnyAnimation('idle');
+            }
         }
     }
 
     updateTumble() {
         const tumbleTime = Date.now() - this.tumbleStartTime;
 
-        // Dramatic tumble rotation - more realistic for 3D car
-        this.car.mesh.rotation.x += this.tumbleSpeed * 1.5;
-        this.car.mesh.rotation.y += this.tumbleSpeed * 0.8;
-        this.car.mesh.rotation.z += this.tumbleSpeed * 1.2;
+        // More dramatic tumble for missile destruction
+        const intensity = this.destroyedByMissile ? 2 : 1;
+        
+        this.car.mesh.rotation.x += this.tumbleSpeed * 1.5 * intensity;
+        this.car.mesh.rotation.y += this.tumbleSpeed * 0.8 * intensity;
+        this.car.mesh.rotation.z += this.tumbleSpeed * 1.2 * intensity;
 
         // More dramatic movement for crash effect
-        this.car.mesh.position.x += (Math.random() - 0.5) * 0.4;
-        this.car.mesh.position.y = 0.3 + Math.sin(Date.now() * 0.02) * 0.8; // Adjusted for 3D car height
+        this.car.mesh.position.x += (Math.random() - 0.5) * 0.4 * intensity;
+        this.car.mesh.position.y = 0.3 + Math.sin(Date.now() * 0.02) * 0.8 * intensity;
 
         // Move explosion with car
         if (this.explosion) {
             this.explosion.position.copy(this.car.mesh.position);
-            this.explosion.position.y += 1.5; // Higher for 3D car
+            this.explosion.position.y += 1.5;
             
             // Make explosion pulse and grow
             const pulse = 1 + Math.sin(Date.now() * 0.015) * 0.3;
@@ -134,7 +209,7 @@ export class TumbleSystem {
         }
 
         // Intense camera shake during tumble
-        const shakeIntensity = 0.4 * (1 - tumbleTime / this.tumbleDuration);
+        const shakeIntensity = 0.4 * (1 - tumbleTime / this.tumbleDuration) * intensity;
         this.camera.position.x = this.car.mesh.position.x * 0.3 + (Math.random() - 0.5) * shakeIntensity;
         this.camera.position.y = 2 + (Math.random() - 0.5) * shakeIntensity * 0.6;
         this.camera.position.z = this.car.mesh.position.z + 5 + (Math.random() - 0.5) * shakeIntensity * 0.3;
@@ -159,6 +234,10 @@ export class TumbleSystem {
         console.log("💥 Tumble finished - returning to normal position");
         this.car.restoreToOriginal();
 
+        // Reset missile destruction flag
+        if (this.destroyedByMissile) {
+            this.destroyedByMissile = false;
+        }
     }
 
     updateReturnToNormal() {
@@ -173,7 +252,7 @@ export class TumbleSystem {
         
         // Reset rotation
         this.car.mesh.rotation.x += (0 - this.car.mesh.rotation.x) * returnSpeed;
-        this.car.mesh.rotation.y += (Math.PI - this.car.mesh.rotation.y) * returnSpeed; // Face forward for 3D car
+        this.car.mesh.rotation.y += (Math.PI - this.car.mesh.rotation.y) * returnSpeed;
         this.car.mesh.rotation.z += (0 - this.car.mesh.rotation.z) * returnSpeed;
 
         // Check if we're close enough to normal position
@@ -185,9 +264,9 @@ export class TumbleSystem {
             
             // Set exact values to avoid floating point errors
             this.car.mesh.position.set(0, 0.3, this.car.mesh.position.z);
-            this.car.mesh.rotation.set(0, Math.PI, 0); // Proper rotation for 3D car
+            this.car.mesh.rotation.set(0, Math.PI, 0);
             
-            // RESTORE CAR TO ORIGINAL FORM - This is the key fix!
+            // RESTORE CAR TO ORIGINAL FORM
             this.resetCarColor();
             
             console.log("✅ Car returned to normal position and ORIGINAL COLORS");
@@ -199,7 +278,7 @@ export class TumbleSystem {
         console.log("💥 Enhanced explosion triggered!");
         
         // Change car color to black
-        this.setCarColor(0x222222); // Dark gray for burnt effect
+        this.setCarColor(0x222222);
         
         // Create multiple explosion effects
         this.createMultiExplosion(scene);
@@ -255,7 +334,7 @@ export class TumbleSystem {
         }
         
         scene.add(explosionGroup);
-        this.explosion = explosionGroup; // Store the group instead of single explosion
+        this.explosion = explosionGroup;
     }
 
     isActive() {
@@ -265,6 +344,7 @@ export class TumbleSystem {
     reset() {
         this.isTumbling = false;
         this.isReturningToNormal = false;
+        this.destroyedByMissile = false;
         
         // Remove explosion if exists
         if (this.explosion) {

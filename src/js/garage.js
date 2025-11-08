@@ -303,7 +303,7 @@ const garageVechicles = [
   {
     id: '7eg',
     name: 'Fear 🤬',
-    Car3D: vechicles3D.car3d7,
+    Car3D: vechicles3D.car3d8,
     CarImage: vechicles.redFrontView,
     speed: '700km/h',
     acceleration: '30m/s²',
@@ -343,7 +343,7 @@ const garageVechicles = [
   {
     id: '8fg',
     name: 'Storm-rider ⚡',
-    Car3D: vechicles3D.car3d8,
+    Car3D: vechicles3D.car3d7,
     CarImage: vechicles.redFrontView,
     speed: '1000km/h',
     acceleration: '40m/s²',

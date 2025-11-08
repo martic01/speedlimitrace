@@ -9,7 +9,7 @@ import { TumbleSystem } from './TumbleSystem.js';
 import { setHolding, setMeters, updateSpeed, speedo } from './speedo.js';
 import { gameMusic, stopAll } from '../sounds.js';
 import { initDistanceHUD, updateDistanceHUD, resetDistanceHUD, destroyDistanceHUD } from './distanceHud.js';
-import { configureTimer, setTimerRunning,startCountdown, resetTimer } from './Mode.js'
+import { configureTimer, setTimerRunning, startCountdown, resetTimer, stopCountdown } from './Mode.js'
 
 export class startGame {
   constructor(containerSelector = '.road', distanceKm = 1) {
@@ -259,14 +259,13 @@ export class startGame {
   }
 
   setRaceDistance(distanceKm) {
-  this.raceDistance = distanceKm * 1000;
-  if (this.finishLine) {
-    this.scene.remove(this.finishLine.mesh);
-    this.finishLine = new FinishLine(this.scene, -this.raceDistance);
-    startCountdown()
+    this.raceDistance = distanceKm * 1000;
+    if (this.finishLine) {
+      this.scene.remove(this.finishLine.mesh);
+      this.finishLine = new FinishLine(this.scene, -this.raceDistance)
+    }
+    resetDistanceHUD();
   }
-  resetDistanceHUD();
-}
 
   applyPendingSettings() {
     if (this.pendingTumbleSettings) {
@@ -601,7 +600,7 @@ export class startGame {
       this.nowSound = gameMusic();
       this.hasCrossedFinishLine = true;
       this.raceFinished = true;
-
+      stopCountdown()
       if (this.speed > 0.4) this.driftAnimation();
     }
 
@@ -619,14 +618,14 @@ export class startGame {
   }
 
   updateDistanceDisplay() {
-  const distanceElement = document.getElementById('distance-display');
-  if (distanceElement) {
-    distanceElement.textContent =
-      `Distance: ${(this.totalDistance / 1000).toFixed(2)}km / ${(this.raceDistance / 1000).toFixed(1)}km`;
+    const distanceElement = document.getElementById('distance-display');
+    if (distanceElement) {
+      distanceElement.textContent =
+        `Distance: ${(this.totalDistance / 1000).toFixed(2)}km / ${(this.raceDistance / 1000).toFixed(1)}km`;
+    }
+    // Keep radar in sync every frame
+    updateDistanceHUD(this.totalDistance, this.raceDistance);
   }
-  // Keep radar in sync every frame
-  updateDistanceHUD(this.totalDistance, this.raceDistance);
-}
 
   startAnimation() {
     const loop = () => {

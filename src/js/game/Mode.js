@@ -1,16 +1,18 @@
 import { weathers, tracks, enviromental, vechicles3D } from "../../constants/material";
 import { startNewGame, setRaceDistance } from ".";
 import { selectedCar } from "../garage";
+import { ChopperRenderer } from "./chopper";
 
-const x  = (sel) => document.querySelector(sel);
+const x = (sel) => document.querySelector(sel);
 const x2 = (sel) => document.querySelectorAll(sel);
 
-const mod            = x2('.mod');
-const enviroDisplay  = x('.sky');
+const mod = x2('.mod');
+const enviroDisplay = x('.sky');
 const weatherDisplay = x('.we');
-const timestamp      = x('.timestamp');
+const timestamp = x('.timestamp');
 
 let roadDisplay;
+let currentChopper = null;
 
 // -------------------- Preload helpers --------------------
 const imageCache = new Map();
@@ -35,8 +37,8 @@ function preloadImage(url) {
 
 function preloadModeAssets(mode) {
   if (!mode) return Promise.resolve();
-  const urls = [ mode.enviro, mode.weather, mode.track ].filter(Boolean);
-  return Promise.all(urls.map(preloadImage)).then(() => {});
+  const urls = [mode.enviro, mode.weather, mode.track].filter(Boolean);
+  return Promise.all(urls.map(preloadImage)).then(() => { });
 }
 
 // -------------------- Modes --------------------
@@ -52,13 +54,15 @@ const modes = [
     enviro: enviromental.enviroment1,
     minSpeed: 0,
     maxSpeed: 0,
-    time: 23,     // seconds
+    time: 80,     // seconds
     distance: 1,  // km
     carRequirement: 200, // km/h
     gems: 200,
     Exp: 20,
     rate: 0,
     lastMessage: "Enjoy the calm drive!",
+    missiles: false,
+    missileSpeed: 0
   },
   {
     id: "mb2",
@@ -78,6 +82,8 @@ const modes = [
     Exp: 40,
     rate: 0,
     lastMessage: "Enjoy the calm drive!",
+    missiles: false,
+    missileSpeed: 0
   },
   {
     id: "mc3",
@@ -97,6 +103,8 @@ const modes = [
     Exp: 50,
     rate: 0,
     lastMessage: "Enjoy the calm drive!",
+    missiles: true,
+    missileSpeed: 3000
   },
   {
     id: "m4d",
@@ -116,10 +124,12 @@ const modes = [
     Exp: 100,
     rate: 0,
     lastMessage: "Enjoy the calm drive!",
+    missiles: true,
+    missileSpeed: 2000
   },
   {
     id: "m5e",
-    name: "Scared Wave",
+    name: "Missile Mayhem",
     obstacles: false,
     obstaclesSpawnLev: 1,
     weather: weathers.weatherLigth3,
@@ -134,7 +144,9 @@ const modes = [
     gems: 1000,
     Exp: 100,
     rate: 0,
-    lastMessage: "Enjoy the calm drive!",
+    lastMessage: "Dodge the missiles!",
+    missiles: true,
+    missileSpeed: 1500
   },
 ];
 
@@ -176,7 +188,7 @@ function getModeById(id) {
   return modes.find(m => m.id === id) || null;
 }
 
-// -------------------- Timer controller (Boolean API) --------------------
+// -------------------- Timer controller --------------------
 const timer = {
   durationSec: 60,
   remainingSec: 60,
@@ -191,9 +203,9 @@ function setTimestampDisplay(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   timestamp.textContent = `${m}:${s.toString().padStart(2, '0')}s`;
-  if (sec <= 20){ 
+  if (sec <= 10) {
     timestamp.classList.add('warn');
-  }else {
+  } else {
     timestamp.classList.remove('warn');
   }
 }
@@ -215,17 +227,13 @@ function scheduleTick() {
     timer.running = false;
     clearTimerTimeout();
     document.dispatchEvent(new CustomEvent('mode:timeup'));
-    try { timer.onEnd?.(); } catch {}
+    try { timer.onEnd?.(); } catch { }
     return;
   }
   const nextIn = remainingMs % 1000 || 1000;
   timer.timeoutId = setTimeout(scheduleTick, nextIn);
 }
 
-/**
- * Configure timer once. Does not start unless startImmediately is true.
- * ex: configureTimer({ duration: 90, onEnd: ()=>resetGame(), startImmediately: false })
- */
 function configureTimer({ duration, onEnd, startImmediately = false } = {}) {
   clearTimerTimeout();
   if (Number.isFinite(duration) && duration > 0) {
@@ -238,15 +246,9 @@ function configureTimer({ duration, onEnd, startImmediately = false } = {}) {
   if (startImmediately) setTimerRunning(true);
 }
 
-/**
- * Boolean API to start/pause the timer.
- * setTimerRunning(true)  -> starts/resumes with remainingSec
- * setTimerRunning(false) -> pauses and keeps remainingSec
- */
 function setTimerRunning(run = false) {
   if (run) {
     if (timer.running) return;
-    // If remainingSec is 0 (finished), reset to duration
     if (!Number.isFinite(timer.remainingSec) || timer.remainingSec <= 0) {
       timer.remainingSec = timer.durationSec;
     }
@@ -256,29 +258,70 @@ function setTimerRunning(run = false) {
   } else {
     if (!timer.running) return;
     clearTimerTimeout();
-    // snapshot remaining
     const remainingMs = Math.max(0, timer.endTs - Date.now());
     timer.remainingSec = Math.ceil(remainingMs / 1000);
     timer.running = false;
   }
 }
 
-/** Reset the timer to a (new) duration without starting. */
 function resetTimer(duration) {
   configureTimer({ duration, onEnd: timer.onEnd, startImmediately: false });
 }
 
-/** Convenience getter */
 function getRemainingTime() {
   return timer.remainingSec;
 }
 
-// Back-compat helpers
-function startCountdown(seconds, onEnd) {
-  configureTimer({ duration: seconds, onEnd, startImmediately: false });
+// Back-compat timer functions
+function startTimer() {
+  setTimerRunning(true);
 }
+
+function stopTimer() {
+  setTimerRunning(false);
+}
+
+function startCountdown(seconds, onEnd) {
+  configureTimer({ duration: seconds, onEnd, startImmediately: true });
+}
+
 function stopCountdown() {
   setTimerRunning(false);
+}
+
+function isTimerRunning() {
+  return timer.running;
+}
+
+function getTimerState() {
+  return {
+    running: timer.running,
+    remaining: timer.remainingSec,
+    duration: timer.durationSec
+  };
+}
+
+// Chopper management
+function initializeChopper(mode) {
+  // Clean up existing chopper
+  if (currentChopper) {
+    currentChopper.dispose();
+    currentChopper = null;
+  }
+
+  // Initialize new chopper if mode has one
+  if (mode.chopper && window.gameInstance) {
+    currentChopper = new ChopperRenderer('.chopper', window.gameInstance);
+    
+    // Configure missile system based on mode
+    if (mode.missiles) {
+      // Start with slower missiles, speed up when time ends
+      currentChopper.setMissileShooting(true, mode.missileSpeed);
+    }
+    
+    return currentChopper;
+  }
+  return null;
 }
 
 // -------------------- Init / Bind --------------------
@@ -311,22 +354,34 @@ function initMode() {
 
       // Apply visuals and distance
       await applyMode(mode);
+      
+      // Initialize chopper and missile system
+      initializeChopper(mode);
 
-      // Set timer for the mode and start it via boolean API
+      // Set timer for the mode
       configureTimer({
         duration: mode.time,
         onEnd: () => {
-          alert("Time's up!");
+          console.log(`⏰ Time's up for ${mode.name}!`);
+          // Missile system will handle the time end via event listener
         },
         startImmediately: false,
       });
 
-
-      // Start game after a small delay (countdown continues)
+      // Start game after a small delay
       setTimeout(() => {
         startNewGame?.();
+        setTimerRunning(true);
       }, 1000);
     });
+  });
+
+  // Global time end handler for missile activation
+  document.addEventListener('mode:timeup', () => {
+    if (currentChopper) {
+      console.log("🚀 Time's up! Activating aggressive missile mode!");
+      currentChopper.setMissileSpeed(800); // Fast missiles when time ends
+    }
   });
 
   // Idle warmup of all assets
@@ -336,7 +391,7 @@ function initMode() {
     modes.forEach(m => {
       if (m.enviro) urls.add(m.enviro);
       if (m.weather) urls.add(m.weather);
-      if (m.track)  urls.add(m.track);
+      if (m.track) urls.add(m.track);
     });
     [...urls].forEach(u => preloadImage(u));
   });
@@ -348,12 +403,19 @@ initMode();
 export {
   initMode,
   roadDisplay,
+  currentChopper,
   // Timer API
   configureTimer,
   setTimerRunning,
   resetTimer,
   getRemainingTime,
-  // Back-compat (optional)
+  startTimer,
+  stopTimer,
   startCountdown,
   stopCountdown,
+  isTimerRunning,
+  getTimerState,
+  clearTimerTimeout,
+  // Chopper management
+  initializeChopper,
 };

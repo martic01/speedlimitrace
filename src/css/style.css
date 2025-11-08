@@ -910,6 +910,7 @@ body {
     height: 17%;
     padding: 10px;
     justify-content:space-between;
+    position: relative;
 }
 .topreadings  .distance{
      width: 30%;
@@ -1299,9 +1300,17 @@ body {
     font-weight: 900;
 }
 
+.chopper{
+  width: 100%; 
+  position: absolute;
+  top: 0;
+  height:30vh; 
+  z-index: -1;
+}
+
 .meter {
     width: 27%;
-    background: #ffffff21;
+    /* background: #ffffff21; */
     backdrop-filter: blur(7px);
     transform: translateX(133%) translateY(-17%);
     justify-content: space-between;
@@ -1315,9 +1324,6 @@ body {
 .detail {
     height: 3rem;
     background: rgba(0, 0, 0, 0.308);
-
-    border: 0.4rem solid;
-    animation: boderAnim 10s linear infinite;
 }
 
 .headering {
@@ -1357,13 +1363,9 @@ body {
 
 .speedo {
     height: 300px;
-    background: rgba(3, 3, 3, 0.616);
     display: grid;
     place-items: center;
     color: var(--text);
-    border: 0.7rem solid;
-    animation: boderAnim 10s linear infinite;
-    animation-delay: 1s;
     font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
 }
 
@@ -1420,8 +1422,6 @@ canvas {
     height: 100%;
     background: #0000006c;
     justify-content: space-between;
-    border: 0.4rem solid;
-    animation: boderAnim 10s linear infinite;
 }
 
 .mission {

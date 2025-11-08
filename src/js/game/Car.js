@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { vechicles3D } from '../../constants/material';
 import { selectedCar } from '../garage';
-import { setMeters } from './speedo';
+
 export class Car {
     constructor(scene, game = null, carData = null) {
         this.scene = scene;
@@ -49,6 +49,10 @@ export class Car {
         // Protective system visual effects
         this.protectionShield = null;
         this.protectionParticles = [];
+
+        // Missile collision tracking
+        this.missileHitCount = 0;
+        this.maxMissileHits = 3;
 
         // Create a simple placeholder while loading
         this.createPlaceholderCar();
@@ -260,9 +264,11 @@ export class Car {
     getMinorTk() {
         return this.carData.minorTK || 1;
     }
+
     getMajorTk() {
         return this.carData.majorTK || 10;
     }
+
     // Method to handle collision with protection
     handleCollision(obstacleType) {
         if (this.isProtected()) {
@@ -280,6 +286,40 @@ export class Car {
         }
 
         return true; // Collision should proceed normally
+    }
+
+    // Method to handle missile hit
+    handleMissileHit() {
+        console.log("🚀 Car hit by missile!");
+        
+        this.missileHitCount++;
+        
+        if (this.missileHitCount >= this.maxMissileHits) {
+            console.log("💥 Car destroyed by missiles!");
+            return 'destroyed';
+        } else {
+            console.log(`🚗 Car damaged! Hits: ${this.missileHitCount}/${this.maxMissileHits}`);
+            
+            // Visual damage effect
+            this.showDamageEffect();
+            
+            // Speed reduction
+            if (this.game && this.game.speed !== undefined) {
+                this.game.speed = Math.max(0.05, this.game.speed * 0.7);
+            }
+            
+            return 'damaged';
+        }
+    }
+
+    showDamageEffect() {
+        // Flash red to indicate damage
+        const originalColor = this.mesh.material.color.clone();
+        this.mesh.material.color.set(0xff0000);
+        
+        setTimeout(() => {
+            this.mesh.material.color.copy(originalColor);
+        }, 300);
     }
 
     showProtectionHitEffect() {
@@ -348,7 +388,6 @@ export class Car {
         }
     }
 
-    // ... rest of your existing methods (createPlaceholderCar, loadCarModel, etc.) remain the same
     createPlaceholderCar() {
         const carGeometry = new THREE.BoxGeometry(0.8, 0.4, 1.5);
         const carMaterial = new THREE.MeshLambertMaterial({
@@ -382,7 +421,6 @@ export class Car {
                 // Apply model position
                 const position = this.carData.modelPosition || { x: 0, y: 0.3, z: -6 };
                 this.mesh.position.set(position.x, position.y, position.z + this.positionOffsetZ);
-                // console.log('📍 Model position set to:', this.mesh.position);
 
                 // Scale model properly
                 this.applyProperScaling();
@@ -392,8 +430,6 @@ export class Car {
 
                 // Store original colors BEFORE optimizing
                 this.storeOriginalColors(this.mesh);
-
-
 
                 // Optimize materials for WebGL 1
                 this.optimizeMaterials(this.mesh);
@@ -411,7 +447,6 @@ export class Car {
                 } else {
                     percentLoaded = Math.min((progress.loaded / 1000000) * 100, 99);
                 }
-                // console.log(`📦 Loading ${this.carData.name}: ${percentLoaded.toFixed(1)}%`);
             },
             (error) => {
                 console.error('❌ Error loading 3D car model:', error);
@@ -431,8 +466,6 @@ export class Car {
         const size = new THREE.Vector3();
         box.getSize(size);
 
-        // console.log('📏 Model size:', size);
-
         if (size.length() === 0) {
             console.warn('⚠️ Model has zero size, using default scale');
             this.mesh.scale.set(defaultScale, defaultScale, defaultScale);
@@ -440,7 +473,6 @@ export class Car {
             const maxDim = Math.max(size.x, size.y, size.z);
             const scale = defaultScale / maxDim;
             this.mesh.scale.set(scale, scale, scale);
-            // console.log('📐 Model scaled to:', this.mesh.scale);
         }
     }
 
@@ -468,7 +500,6 @@ export class Car {
                 this.originalColors.set(child, colors);
             }
         });
-        // console.log("🎨 Original car colors stored");
     }
 
     optimizeMaterials(object) {
@@ -628,7 +659,6 @@ export class Car {
             this.animationState = 'returning';
             this.animationStartTime = Date.now();
             this.resetColor();
-
         }
     }
 
@@ -726,6 +756,9 @@ export class Car {
 
         // Reset protection system
         this.deactivateProtection();
+        
+        // Reset missile hit count
+        this.missileHitCount = 0;
     }
 
     disposeMesh(mesh) {
@@ -756,32 +789,6 @@ export class Car {
         // Clean up protection effects
         this.removeProtectionEffects();
     }
-
-    // Debug method to check model status
-    // debugModel() {
-    //     if (!this.mesh) {
-    //         console.log('❌ No mesh loaded');
-    //         return;
-    //     }
-
-    //     console.log('🔍 Car Model Debug:');
-    //     console.log('- Name:', this.carData.name);
-    //     console.log('- Position:', this.mesh.position);
-    //     console.log('- Scale:', this.mesh.scale);
-    //     console.log('- Rotation:', this.mesh.rotation);
-    //     console.log('- Animation State:', this.animationState);
-    //     console.log('- Drive In Complete:', this.driveInComplete);
-    //     console.log('- Protection Active:', this.carData.protectionActive);
-    //     console.log('- Protection Remaining:', this.carData.protectionRemaining + 'm');
-    //     console.log('- Visible:', this.mesh.visible);
-
-    //     let meshCount = 0;
-    //     this.mesh.traverse((child) => {
-    //         if (child.isMesh) meshCount++;
-    //     });
-
-    //     console.log(`📊 Total meshes: ${meshCount}`);
-    // }
 }
 
 export default Car;

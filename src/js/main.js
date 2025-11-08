@@ -4,6 +4,7 @@ import { stopMusic, firstSound, gameMusic, stopSound, stopAll } from "./sounds";
 import { garageInit } from "./garage";
 import { startNewGame, setRaceDistance, resetGame } from './game/index.js';
 import { initMode } from "./game/Mode.js";
+import { ChopperRenderer } from "./game/chopper.js";
 
 let sound;
 
@@ -20,6 +21,7 @@ const garagepg  = document.querySelector('.garagepg');
 
 
 function preLoadGarage() {
+  new ChopperRenderer('.chopper')
   garagepg.style.display = 'block';
   setTimeout(() => { garagepg.style.display = 'none'; }, 10);
 }
