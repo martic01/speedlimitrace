@@ -1471,7 +1471,12 @@ canvas {
     background-size: cover;
     text-align: center;
     padding: 3px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 99999;
 }
+
 .mobile-block h1 {
     font-size: 40px;
     font-weight: 900;
@@ -1479,6 +1484,7 @@ canvas {
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
     margin-bottom: 80px;
 }
+
 .mobile-block h2 {
     font-size: 30px;
     font-weight: 700;
@@ -1494,12 +1500,35 @@ canvas {
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
 }
 
-@media (max-width: 860px) {
+/* Combined mobile detection */
+@media (max-width: 860px), (hover: none) and (pointer: coarse) {
     .mobile-block {
-        display: block;
+        display: block !important;
     }
 
     .desk {
-        display: none;
+        display: none !important;
+    }
+}
+
+/* Ensure desktop view on mobile doesn't bypass the block */
+@media (min-width: 861px) and (hover: none) and (pointer: coarse) {
+    .mobile-block {
+        display: block !important;
+    }
+
+    .desk {
+        display: none !important;
+    }
+}
+
+/* True desktop - hide mobile block */
+@media (min-width: 861px) and (hover: hover) and (pointer: fine) {
+    .mobile-block {
+        display: none !important;
+    }
+    
+    .desk {
+        display: block !important;
     }
 }
