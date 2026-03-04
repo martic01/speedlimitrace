@@ -10,7 +10,7 @@ try { console.log('THREE REV:', THREE.REVISION); } catch { }
 
 // --- UI References ---
 const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
+const $$ = (sel) => document.querySelectorAll(sel)
 
 const garagesw = $('.garagesw');
 const forwardcar = $('.forw');
