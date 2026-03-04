@@ -847,10 +847,6 @@ body {
     background-repeat: no-repeat;
 }
 
-.rock.rg1 {}
-
-
-
 #countdown-display {
     animation: pulse 0.5s ease-in-out;
 }
@@ -1159,6 +1155,7 @@ body {
     background:
         radial-gradient(circle at center, var(--color) var(--dot), transparent calc(var(--dot) + 0.5%)) 0 0 / var(--cell) var(--cell) repeat;
     -webkit-background-clip: text;
+     color: transparent;
     background-clip: text;
     -webkit-text-fill-color: transparent;
 
@@ -1455,9 +1452,9 @@ canvas {
 }
 
 .screen {
-    display: none;
+    display: block;
 }
 
 .gamepg {
-    display: block;
+    display: none;
 }

@@ -54,7 +54,7 @@ const modes = [
     enviro: enviromental.enviroment1,
     minSpeed: 0,
     maxSpeed: 0,
-    time: 80,     // seconds
+    time: 40,     // seconds
     distance: 1,  // km
     carRequirement: 200, // km/h
     gems: 200,
@@ -311,14 +311,14 @@ function initializeChopper(mode) {
 
   // Initialize new chopper if mode has one
   if (mode.chopper && window.gameInstance) {
-    currentChopper = new ChopperRenderer('.chopper', window.gameInstance);
-    
+    currentChopper = new ChopperRenderer('.chopper')
+
     // Configure missile system based on mode
     if (mode.missiles) {
       // Start with slower missiles, speed up when time ends
       currentChopper.setMissileShooting(true, mode.missileSpeed);
     }
-    
+
     return currentChopper;
   }
   return null;
@@ -354,9 +354,9 @@ function initMode() {
 
       // Apply visuals and distance
       await applyMode(mode);
-      
+
       // Initialize chopper and missile system
-      initializeChopper(mode);
+      // initializeChopper(mode);
 
       // Set timer for the mode
       configureTimer({
