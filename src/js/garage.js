@@ -10,11 +10,11 @@ try { console.log('THREE REV:', THREE.REVISION); } catch { }
 
 // --- UI References ---
 const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel)
+const $$ = (sel) => document.querySelectorAll(sel);
 
 const garagesw = $('.garagesw');
 const forwardcar = $('.forw');
-const reversecar = $('.rever');
+const reversecar = $('.rever')
 const samebtn = $$('.same');
 const carContainer = $('.car');
 const carInfos = $$('.carinfo');
